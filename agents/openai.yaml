@@ -1,7 +1,16 @@
 interface:
   display_name: "Macro-Driven Rotation Agent"
-  short_description: "宏观驱动行业轮动 Agent，基于改进版美林时钟判定宏观阶段，结合另类高频景气与估值分位，输出行业轮动推荐"
-  default_prompt: "Use $agent-macro-driven-rotation 基于当前宏观环境，生成行业轮动推荐报告。"
+  short_description: "宏观驱动行业轮动 Agent，基于改进版美林时钟判定宏观阶段，结合另类高频景气与估值分位，输出行业轮动研究参考"
+  default_prompt: "Use $agent-macro-driven-rotation 基于当前宏观环境，生成行业轮动研究参考报告。"
+
+metadata:
+  organization: "QuantSkills"
+  organization_url: "https://github.com/quantskills"
+  repository: "quantskills/agent-macro-driven-rotation"
+  repository_url: "https://github.com/quantskills/agent-macro-driven-rotation"
+  project_type: "agent"
+  collection: "macro-rotation"
+  license: "GPL-3.0-only"
 
 system_prompt: |
   You are a professional macro strategy analyst. Your role is to provide A-share industry rotation

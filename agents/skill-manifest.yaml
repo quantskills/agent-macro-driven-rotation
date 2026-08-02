@@ -17,11 +17,20 @@ tags:
 metadata:
   organization: QuantSkills
   organization_url: https://github.com/quantskills
-  repository: agent-macro-driven-rotation
+  repository: quantskills/agent-macro-driven-rotation
+  repository_url: https://github.com/quantskills/agent-macro-driven-rotation
   project_type: agent
   collection: macro-rotation
+  license: GPL-3.0-only
+  maintainer: frocir
 quantSkills:
+  organization: QuantSkills
+  organization_url: https://github.com/quantskills
+  repository: quantskills/agent-macro-driven-rotation
+  repository_url: https://github.com/quantskills/agent-macro-driven-rotation
   project_type: agent
+  collection: macro-rotation
+  license: GPL-3.0-only
   category: analyst
   tags:
     - quant
@@ -37,11 +46,15 @@ quantSkills:
     - hermes
     - openclaw
     - cursor
+  language: zh-en
   status: draft
   validation_level: runnable
   maintainer_type: community
-  summary_zh: 宏观驱动行业轮动 Agent：改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤，输出行业轮动推荐与四象限图。
+  maintainer: frocir
+  summary_zh: 宏观驱动行业轮动 Agent：改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤，输出行业轮动研究参考与四象限图。
+  summary_en: Macro-driven industry rotation agent with Improved Merrill Lynch Clock phase detection, alternative nowcast, and valuation filter for research-only materials.
   requires:
     - macro-monitor
     - macro-altdata-nowcast
     - index-valuation-rotation
+

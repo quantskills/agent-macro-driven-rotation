@@ -1,13 +1,14 @@
 ---
 name: agent-macro-driven-rotation
-description: 宏观驱动行业轮动分析。改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤；适用于行业轮动推荐、宏观定相位、行业配置参考。
+description: 宏观驱动行业轮动分析。改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤；适用于行业轮动研究参考、宏观定相位、行业配置研究。
 ---
 
 # 宏观驱动行业轮动 Agent
 
-本文是唯一行为与使用说明（原「使用说明书」已并入）。Agent 对话与本机运行均以本文为准。
+本文是完整行为与使用说明。QuantSkills Agent 声明与多运行时入口见根目录 [AGENTS.md](AGENTS.md)；仓库主页见 [README.md](README.md)。
 
-> 文件最上方仅保留 Agent 加载所需的两行元数据（`name` / `description`）。发布用完整清单见 [agents/skill-manifest.yaml](agents/skill-manifest.yaml)。
+> 文件最上方仅保留 Agent 加载所需的两行元数据（`name` / `description`）。组织与许可证等完整元数据见 [AGENTS.md](AGENTS.md) 与 [agents/skill-manifest.yaml](agents/skill-manifest.yaml)。
+
 
 ## 定位边界（必读）
 
@@ -30,17 +31,19 @@ description: 宏观驱动行业轮动分析。改进版美林时钟定相 + 另�
 
 ```text
 agent-macro-driven-rotation/
-  SKILL.md / 测试报告.md / requirements.txt / .env.example
+  AGENTS.md / README.md / README.en.md / LICENSE / SKILL.md
+  requirements.txt / .env.example
   templates/l4.html          # L4 模板（非交付物）
   scripts/                   # 取数、定码、图表、校验、回测
   runtime/                   # 统一 CLI + 编排
   references/                # 方法指南、Alpha 边界规则
-  agents/                    # 宿主适配
+  agents/                    # 宿主适配与发布清单
   reports/
     runtime_out/             # 运行产物（gitignore）
     backtest/                # 回测产物（gitignore）
     samples/                 # 结构样例（入库）
 ```
+
 
 依赖 Skill：`macro-monitor`、`macro-altdata-nowcast`、`index-valuation-rotation`。
 
@@ -231,10 +234,13 @@ charts = render_all(
 
 ## 跨 Agent 使用说明
 
+- **声明入口**：根目录 `AGENTS.md`（QuantSkills Agent 声明 / 元数据）。
 - **Claude Code / Codex**：加载本文件夹为 `$agent-macro-driven-rotation`，并加载三依赖。
 - **Cursor**：`.cursor/skills/agent-macro-driven-rotation` + `agents/cursor-rule.mdc`。
+- **Hermes / OpenClaw**：`agents/portable-loader.md`。
 - **OpenAI / Actions**：`agents/openai.yaml`。
 - **无 Skill 发现**：粘贴 `agents/portable-loader.md` 并替换根路径。
+
 
 ## 常见问题
 
@@ -249,9 +255,12 @@ A：可在对话说明偏好，或写入 `tuning_prefs`；只影响门槛，不�
 
 ## 参考资料
 
+- Agent 声明：[AGENTS.md](AGENTS.md)
+- 仓库主页：[README.md](README.md) / [README.en.md](README.en.md)
 - 方法细节：[references/macro-driven-rotation-guide.md](references/macro-driven-rotation-guide.md)
 - Alpha 边界：[references/Alpha因子开发与生产规则V2.md](references/Alpha因子开发与生产规则V2.md)
 - 图表工具：[scripts/chart_writer.py](scripts/chart_writer.py)
 - 发布元数据：[agents/skill-manifest.yaml](agents/skill-manifest.yaml)
+
 
 > **免责声明**：本报告基于公开数据与规则化分析生成，仅供研究参考，不构成任何投资建议。
