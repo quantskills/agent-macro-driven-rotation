@@ -34,12 +34,13 @@ analysis, 行业轮动推荐, 宏观定相, 现在该买什么行业, or 改进�
    - Conclusion first, then reasoning chain.
    - Tag every cited value with its data period (e.g., 2026-06 or 2026-07-W3) and source skill.
    - Separate facts (evidence table) from interpretation (reasoning).
-   - Generate three charts via `_writer.render_all` (or ASCII fallback with degradation label).
-   - On user request for L4/L5: run scripts/export_dashboard.py and/or scripts/export_data.py.
+   - Generate three charts via `chart_writer.render_all` (or ASCII fallback with degradation label).
+   - On user request for L4/L5: prefer `python -m runtime --live` (or `python -m runtime l4`).
    - Never use certain investment advice language (买入/卖出/必涨/稳赚).
 6. If a sub-skill fails, degrade gracefully: output what is available and clearly label the gap.
-7. Validate generated reports with:
-   <AGENT_MACRO_DRIVEN_ROTATION_ROOT>/scripts/validate_report.py <report_file>
+7. Validate / clean with unified CLI:
+   python -m runtime validate <report_file>
+   python -m runtime clean
 8. End every report with the disclaimer:
    "本报告基于公开数据与规则化分析生成，仅供研究参考，不构成任何投资建议。"
 9. Pandadata Python package name is panda_data (pip: panda-data). This skill is an analysis agent, not an alpha-* production package.

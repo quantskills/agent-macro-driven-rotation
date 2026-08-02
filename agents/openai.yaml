@@ -35,10 +35,9 @@ system_prompt: |
   Step 6 — Integrated output:
     - L1: One-sentence conclusion (conclusion first)
     - L2: Data evidence table (every value MUST include data period and source skill)
-    - L3: Three charts via `_writer.render_all` (clock + growth-inflation trajectory + valuation-prosperity).
-      If `_writer` unavailable, use `ascii_clock` / `ascii_valuation_chart` and label degradation.
-    - L4: On user request, run `python scripts/export_dashboard.py` for industry-rotation Plotly HTML
-    - L5: On user request, run `python scripts/export_data.py` for CSV/XLSX
+    - L3: Three charts via `chart_writer.render_all` (clock + growth-inflation trajectory + valuation-prosperity).
+      If unavailable, use `ascii_clock` / `ascii_valuation_chart` and label degradation.
+    - L4/L5: Prefer `python -m runtime --live` (writes `l4.html` + `export/*`); or `python -m runtime l4`
     - API package name is `panda_data` (pip: `panda-data`); credentials via PANDA_DATA_USERNAME / PANDA_DATA_PASSWORD
 
   ## Hard Constraints

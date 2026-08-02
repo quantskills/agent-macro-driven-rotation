@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fig. · 宏观驱动行业轮动 · 估值–景气动态四象限</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6dc;
+  --ink: #1c1a16;
+  --ink-muted: #5c574e;
+  --rule: #c9c2b4;
+  --rule-strong: #8a8376;
+  --panel: #faf8f3;
+  --accent: #0b5f6b;       /* teal — academic, not purple */
+  --rec: #2a6f4e;          /* recommend green */
+  --avoid: #9b3b2e;        /* avoid vermillion */
+  --caution: #a66b2b;      /* caution ochre */
+  --watch: #6b6560;        /* watch gray */
+  --phase-recovery: #1b7a5a;
+  --phase-overheat: #b33a2b;
+  --phase-stag: #b06d24;
+  --phase-recess: #2f5f8a;
+  --highlight: #8a5a12;    /* phase-benefited industries */
+  --trail: #3d6b7a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(ellipse 120% 80% at 10% 0%, #e8e2d4 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 100% 100%, #ddd6c8 0%, transparent 50%),
+    var(--paper);
+  color: var(--ink);
+  min-width: 1100px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+#app {
+  display: flex; flex-direction: column;
+  height: 100vh; padding: 14px 16px 10px; gap: 10px;
+}
+/* ── Header: figure title block ── */
+#header {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.fig-meta { display: flex; flex-direction: column; gap: 2px; min-width: 280px; }
+.fig-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: 0.06em;
+  color: var(--accent); text-transform: uppercase;
+}
+#header h1 {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 18px; font-weight: 600; color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.fig-sub {
+  font-size: 12px; color: var(--ink-muted);
+  max-width: 520px;
+}
+.ctrl-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ctrl-group label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; color: var(--ink-muted); letter-spacing: 0.04em;
+}
+input[type=date] {
+  background: #fff; color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 2px;
+  padding: 4px 8px; font-size: 12px;
+  font-family: "IBM Plex Mono", monospace;
+}
+button {
+  background: #fff; color: var(--ink);
+  border: 1px solid var(--rule-strong); border-radius: 2px;
+  padding: 5px 12px; cursor: pointer; font-size: 12px;
+  font-family: "Source Sans 3", sans-serif; font-weight: 600;
+}
+button:hover { background: var(--paper-2); border-color: var(--accent); color: var(--accent); }
+button.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+/* ── Layout ── */
+#main-area { display: flex; gap: 10px; flex: 1; min-height: 0; }
+#chart-panel {
+  flex: 1; background: var(--panel);
+  border: 1px solid var(--rule); position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.panel-caption {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  padding: 10px 14px 6px; border-bottom: 1px solid var(--rule);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.panel-caption .cap-note {
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 11px; font-weight: 400; color: var(--ink-muted);
+}
+#chart-wrap { flex: 1; position: relative; min-height: 0; }
+#main-svg { width: 100%; height: 100%; display: block; }
+#right-panel { width: 272px; display: flex; flex-direction: column; gap: 10px; }
+.side-panel {
+  background: var(--panel); border: 1px solid var(--rule);
+  padding: 10px 12px; flex: 0 0 auto;
+}
+#info-panel { flex: 1; overflow-y: auto; }
+#traj-panel { display: none; }
+.panel-title {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 12.5px; font-weight: 600; color: var(--ink);
+  margin-bottom: 8px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule);
+}
+#phase-display {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 15px; font-weight: 600; text-align: center; margin-top: 6px;
+}
+.info-row {
+  display: flex; justify-content: space-between;
+  padding: 4px 0; font-size: 12px;
+  border-bottom: 1px dotted var(--rule);
+}
+.info-row span:first-child { color: var(--ink-muted); }
+.info-val {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px; color: var(--ink); font-weight: 500;
+}
+#rec-list { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+.rec-item {
+  display: inline-block; padding: 2px 7px;
+  border: 1px solid var(--rule); border-radius: 2px;
+  font-size: 11px; font-family: "Source Sans 3", sans-serif;
+}
+.rec-item.starred {
+  background: #e8f0ec; border-color: var(--rec); color: var(--rec); font-weight: 600;
+}
+.rec-item.normal { background: #fff; color: var(--ink-muted); }
+#show-traj-wrap { margin-top: 12px; }
+#show-traj-wrap label {
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-size: 12px; color: var(--ink-muted);
+}
+/* ── Footer / playback ── */
+#footer {
+  background: var(--panel); border: 1px solid var(--rule);
+  padding: 8px 14px; display: flex; align-items: center; gap: 14px;
+}
+#play-btn {
+  width: 34px; height: 34px; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+#speed-group { display: flex; gap: 0; }
+#speed-group button {
+  border-radius: 0; border-right-width: 0; padding: 4px 10px;
+  font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 500;
+}
+#speed-group button:first-child { border-radius: 2px 0 0 2px; }
+#speed-group button:last-child { border-radius: 0 2px 2px 0; border-right-width: 1px; }
+#timeline { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+#slider {
+  width: 100%; -webkit-appearance: none; height: 3px;
+  background: var(--rule); border-radius: 0; outline: none; cursor: pointer;
+}
+#slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px;
+  background: var(--accent); border: 2px solid #fff;
+  border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--rule-strong);
+}
+#date-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px; color: var(--accent); text-align: center; letter-spacing: 0.02em;
+}
+
+  /* runtime 本次分析快照（与历史动画同页） */
+  #snapshot-panel { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; }
+  #snapshot-panel .snap-row { display:flex; justify-content:space-between; gap:8px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; padding: 2px 0; color: var(--ink-muted); }
+  #snapshot-panel .snap-row b { color: var(--ink); font-weight: 600; }
+  #snapshot-empty { font-size: 11px; color: var(--ink-muted); }
+
+  #fig-footer {
+  font-size: 11px; color: var(--ink-muted); text-align: left;
+  padding: 0 2px 2px;
+}
+#fig-footer strong { color: var(--ink); font-weight: 600; }
+svg text { font-family: "Source Sans 3", sans-serif; }
+.tooltip {
+  position: absolute; background: #fffef9;
+  border: 1px solid var(--rule-strong); border-radius: 2px;
+  padding: 8px 10px; pointer-events: none; font-size: 12px; z-index: 100;
+  min-width: 150px; display: none;
+  box-shadow: 0 1px 0 rgba(28,26,22,0.04);
+}
+.tooltip strong {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: var(--ink); display: block; margin-bottom: 4px; font-size: 13px;
+}
+.tooltip .t-row { display: flex; justify-content: space-between; gap: 14px; padding: 1px 0; color: var(--ink-muted); }
+.tooltip .t-val { font-family: "IBM Plex Mono", monospace; color: var(--ink); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div class="fig-meta">
+      <div class="fig-label">Figure · Dynamic quadrant</div>
+      <h1>估值–景气四象限随时间演化</h1>
+      <div class="fig-sub">横轴：另类高频景气分数；纵轴：行业估值分位。时间轴覆盖<strong>全部内嵌数据</strong>（不可自选区间）；示意 MOCK 约至 2024-04，实盘由 <code style="font-family:IBM Plex Mono,monospace;font-size:11px">export_l4</code> / runtime 统一写出本页。</div>
+    </div>
+    <div class="ctrl-group" id="data-span-wrap">
+      <label>DATA</label>
+      <span id="data-span" style="font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--ink-muted)">—</span>
+    </div>
+  </div>
+
+  <div id="main-area">
+    <div id="chart-panel">
+      <div class="panel-caption">
+        <span>(a) 行业散点与轨迹</span>
+        <span class="cap-note">实心 = 当前宏观阶段受益行业 · 细线 = 近 90 日轨迹（每行业独立配色）</span>
+      </div>
+      <div id="chart-wrap">
+        <svg id="main-svg" width="100%" height="100%"></svg>
+        <div class="tooltip" id="tooltip"></div>
+      </div>
+    </div>
+    <div id="right-panel">
+      <div class="side-panel" id="clock-panel">
+        <div class="panel-title">(b) 改进版美林时钟</div>
+        <svg id="clock-svg" width="220" height="170" viewBox="0 0 220 170" style="display:block;margin:0 auto"></svg>
+        <div id="phase-display">—</div>
+      </div>
+      <div class="side-panel" id="info-panel">
+        <div class="panel-title">(c) 宏观读数</div>
+        <div id="macro-rows"></div>
+        <div class="panel-title" style="margin-top:12px">(d) 关注名单</div>
+        <div id="rec-list"></div>
+        <div id="show-traj-wrap">
+          <label><input type="checkbox" id="traj-chk"> 显示 (e) PMI–CPI 轨迹</label>
+        </div>
+      </div>
+
+        <div class="side-panel" id="snapshot-panel">
+          <div class="panel-title">(f) 本次分析快照</div>
+          <div id="snapshot-body"><div id="snapshot-empty">尚无 runtime 快照（跑 runtime 或 export_l4 后写入）</div></div>
+        </div>
+
+      <div class="side-panel" id="traj-panel">
+        <div class="panel-title">(e) PMI vs CPI</div>
+        <svg id="traj-svg" width="240" height="170" style="display:block;margin:0 auto"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <button id="play-btn" title="播放/暂停">▶</button>
+    <div class="ctrl-group">
+      <label>SPEED</label>
+      <div id="speed-group">
+        <button data-spd="800" class="active">0.8s</button>
+        <button data-spd="300">0.3s</button>
+        <button data-spd="80">0.08s</button>
+      </div>
+    </div>
+    <div id="timeline">
+      <input type="range" id="slider" min="0" value="0">
+      <div id="date-label">—</div>
+    </div>
+  </div>
+  <div id="fig-footer">
+    <strong>数据来源：</strong><span id="data-source-badge">内嵌示意 MOCK（非实盘）</span>
+    · 打开本页即用<strong>页面内嵌数据</strong>，无需手动加载文件。
+    更新实盘内嵌：跑
+    <code style="font-family:IBM Plex Mono,monospace">python scripts/build_animation.py</code>
+    （会写入下方 JSON 块并可选另存 animation_data/data.json）。仅供研究参考，不构成投资建议。
+  </div>
+</div>
+
+<!-- RUNTIME_SNAPSHOT_BEGIN -->
+<script type="application/json" id="runtime-snapshot-data">null</script>
+<!-- RUNTIME_SNAPSHOT_END -->
+
+<!-- ANIMATION_EMBEDDED_DATA_BEGIN -->
+<script type="application/json" id="animation-embedded-data">null</script>
+<!-- ANIMATION_EMBEDDED_DATA_END -->
+<script>
+const INDUSTRIES = ["电子","消费","医药","资源","周期","银行","防御消费","公用事业","黄金","债券"];
+
+/** 每种行业固定、显著互异配色（色相均匀拉开 + 明度/饱和度错开，避免「都像青/棕」） */
+const INDUSTRY_COLORS = {
+  "电子":     "#0077B6",  /* 亮蓝 */
+  "消费":     "#E85D04",  /* 橙 */
+  "医药":     "#2D6A4F",  /* 深绿 */
+  "资源":     "#D00000",  /* 正红 */
+  "周期":     "#7B2CBF",  /* 紫 */
+  "银行":     "#023E8A",  /* 深蓝 */
+  "防御消费": "#FFB703",  /* 金黄 */
+  "公用事业": "#00A896",  /* 青绿（与蓝拉开） */
+  "黄金":     "#CA6702",  /* 琥珀棕（与橙拉开） */
+  "债券":     "#6C757D"   /* 中性灰，最不抢戏 */
+};
+
+function industryColor(name) {
+  if (INDUSTRY_COLORS[name]) return INDUSTRY_COLORS[name];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const hue = (h * 47) % 360;          // 大步长，减少邻近色
+  const sat = 62 + (h % 3) * 8;        // 62–78%
+  const lit = 32 + (h % 4) * 6;        // 32–50%，偏深便于白底辨认
+  return `hsl(${hue} ${sat}% ${lit}%)`;
+}
+
+const PHASE_BENEFIT = {
+  "衰退期":  ["黄金","债券","公用事业","防御消费"],
+  "复苏期":  ["电子","消费","医药","周期"],
+  "过热期":  ["资源","周期","银行","消费"],
+  "滞胀期":  ["黄金","资源","防御消费"]
+};
+
+const PHASE_COLORS = {
+  "复苏期": "#1b7a5a",
+  "过热期": "#b33a2b",
+  "滞胀期": "#b06d24",
+  "衰退期": "#2f5f8a"
+};
+
+/**
+ * 示意数据（非实盘）——刻意贴近真实发布节奏：
+ *
+ * 1) 宏观阶段 / PMI / CPI：按「月」阶跃（模拟月初公布），不是每天变。
+ *    所以时钟标签会在某个月初突然换阶段——这是对的，不是日频突变 bug。
+ * 2) 行业散点：在整个阶段内平滑迁移（约 2 个多月），禁止一日跨象限瞬移。
+ * 3) 正式 JSON（build_animation.py）：宏观月度定相 + 日频行情代理景气/估值。
+ */
+(function generateMockData() {
+  const PHASE_TARGETS = {
+    "衰退期": {
+      "电子": [-0.55, 28], "消费": [-0.40, 32], "医药": [-0.15, 38], "资源": [-0.50, 22],
+      "周期": [-0.60, 25], "银行": [-0.25, 35], "防御消费": [0.15, 48], "公用事业": [0.25, 52],
+      "黄金": [0.55, 58], "债券": [0.65, 62]
+    },
+    "复苏期": {
+      "电子": [0.72, 32], "消费": [0.55, 36], "医药": [0.48, 40], "资源": [0.10, 28],
+      "周期": [0.35, 30], "银行": [0.20, 42], "防御消费": [-0.05, 55], "公用事业": [-0.10, 58],
+      "黄金": [-0.25, 65], "债券": [-0.35, 70]
+    },
+    "过热期": {
+      "电子": [0.25, 72], "消费": [0.30, 68], "医药": [0.10, 62], "资源": [0.80, 55],
+      "周期": [0.70, 58], "银行": [0.55, 48], "防御消费": [-0.20, 60], "公用事业": [-0.15, 55],
+      "黄金": [0.05, 70], "债券": [-0.40, 75]
+    },
+    "滞胀期": {
+      "电子": [-0.45, 55], "消费": [-0.35, 58], "医药": [0.20, 42], "资源": [0.40, 72],
+      "周期": [-0.20, 65], "银行": [-0.30, 50], "防御消费": [0.25, 45], "公用事业": [0.35, 40],
+      "黄金": [0.60, 68], "债券": [0.15, 55]
+    }
+  };
+  const PHASE_MACRO = {
+    "衰退期": { pmi: 48.2, cpi: 0.4, m2: 9.5, sf: 9.0 },
+    "复苏期": { pmi: 51.2, cpi: 0.8, m2: 10.2, sf: 10.8 },
+    "过热期": { pmi: 52.5, cpi: 2.8, m2: 8.2, sf: 8.5 },
+    "滞胀期": { pmi: 48.5, cpi: 3.2, m2: 7.5, sf: 7.8 }
+  };
+  // 每个阶段持续 4 个自然月（宏观按月公布一次）
+  const PHASE_MONTHS = {
+    "衰退期": ["2023-01", "2023-02", "2023-03", "2023-04"],
+    "复苏期": ["2023-05", "2023-06", "2023-07", "2023-08"],
+    "过热期": ["2023-09", "2023-10", "2023-11", "2023-12"],
+    "滞胀期": ["2024-01", "2024-02", "2024-03", "2024-04"]
+  };
+  const PHASE_ORDER = ["衰退期", "复苏期", "过热期", "滞胀期"];
+
+  function monthToPhase(mKey) {
+    for (const p of PHASE_ORDER) {
+      if (PHASE_MONTHS[p].includes(mKey)) return p;
+    }
+    return "衰退期";
+  }
+
+  const days = [];
+  let d = new Date("2023-01-03");
+  const end = new Date("2024-04-30");
+  while (d <= end) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) days.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+
+  const baseClose = {
+    "电子": 3200, "消费": 8500, "医药": 4200, "资源": 2800, "周期": 1900,
+    "银行": 5600, "防御消费": 3100, "公用事业": 2200, "黄金": 4800, "债券": 1200
+  };
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function smoothstep(t) {
+    t = Math.max(0, Math.min(1, t));
+    return t * t * (3 - 2 * t);
+  }
+
+  // 预计算：每个阶段的交易日区间，用于行业平滑迁移
+  const phaseDayRanges = {};
+  PHASE_ORDER.forEach(p => { phaseDayRanges[p] = []; });
+  days.forEach((dt, i) => {
+    const mKey = dt.toISOString().slice(0, 7);
+    phaseDayRanges[monthToPhase(mKey)].push(i);
+  });
+
+  const daily = {};
+  const monthPhases = {};
+  let lastPhase = null;
+  const phaseChangeDates = {};
+
+  days.forEach((dt, i) => {
+    const ms = dt.toISOString().slice(0, 10);
+    const mKey = ms.slice(0, 7);
+    const phase = monthToPhase(mKey);
+    const phaseIdx = PHASE_ORDER.indexOf(phase);
+    const prevPhase = PHASE_ORDER[Math.max(0, phaseIdx - 1)];
+
+    // 宏观：整月常数（模拟「本月公布值」），在月初切换日阶跃
+    const macro = PHASE_MACRO[phase];
+    if (!monthPhases[mKey]) {
+      monthPhases[mKey] = {
+        phase,
+        pmi: macro.pmi,
+        cpi: macro.cpi,
+        m2: macro.m2,
+        sf: macro.sf
+      };
+    }
+    if (phase !== lastPhase) {
+      phaseChangeDates[ms] = { from: lastPhase, to: phase };
+      lastPhase = phase;
+    }
+
+    // 行业：在本阶段全部交易日上，从前一阶段终点平滑走到本阶段目标
+    const range = phaseDayRanges[phase];
+    const local = range.indexOf(i);
+    const migrateSpan = Math.max(1, Math.floor(range.length * 0.75)); // 前 75% 时间搬家，后 25% 盘整
+    const t = smoothstep(Math.min(1, local / migrateSpan));
+
+    const inds = {};
+    INDUSTRIES.forEach(name => {
+      const from = PHASE_TARGETS[prevPhase][name];
+      const to = PHASE_TARGETS[phase][name];
+      // 日频微扰（行情噪声），幅度小，不会造成「一日瞬移」
+      const jitterS = Math.sin(i / 7 + name.charCodeAt(0) * 0.2) * 0.025;
+      const jitterV = Math.cos(i / 11 + name.charCodeAt(0) * 0.15) * 1.2;
+      const sentiment = Math.max(-1, Math.min(1, lerp(from[0], to[0], t) + jitterS));
+      const valuation_pct = Math.max(5, Math.min(95, lerp(from[1], to[1], t) + jitterV));
+      const priceFactor = 1 + sentiment * 0.12 + (valuation_pct - 50) * 0.001;
+      const close = parseFloat((baseClose[name] * priceFactor).toFixed(2));
+      const ret_1m = parseFloat((sentiment * 8 + (t - 0.5) * 2).toFixed(2));
+      const ret_ytd = parseFloat((ret_1m * 1.3 + sentiment * 2).toFixed(2));
+      inds[name] = {
+        close, ret_1m, ret_ytd,
+        sentiment: parseFloat(sentiment.toFixed(3)),
+        valuation_pct: parseFloat(valuation_pct.toFixed(1))
+      };
+    });
+
+    daily[ms] = {
+      phase,
+      growth_idx: macro.pmi,
+      cpi: macro.cpi,
+      macro_release: phaseChangeDates[ms] ? true : false,
+      industries: inds
+    };
+  });
+
+  window.MOCK_DATA = {
+    meta: {
+      start: days[0].toISOString().slice(0, 10),
+      end: days[days.length - 1].toISOString().slice(0, 10),
+      generated: new Date().toISOString(),
+      source: "mock_rotation_demo",
+      note: "宏观按月阶跃；行业坐标阶段内平滑迁移（非一日瞬移）"
+    },
+    industries: INDUSTRIES,
+    phases: monthPhases,
+    daily
+  };
+})();
+
+let DATA = null;
+let tradeDays = [];
+let filteredDays = [];
+let curIdx = 0;
+let playing = false;
+let playSpeed = 800;
+let playTimer = null;
+
+function setDataSourceBadge(text) {
+  const el = document.getElementById("data-source-badge");
+  if (el) el.textContent = text;
+}
+
+
+function loadRuntimeSnapshot() {
+  const el = document.getElementById("runtime-snapshot-data");
+  if (!el) return null;
+  const text = (el.textContent || "").trim();
+  if (!text || text === "null") return null;
+  try { return JSON.parse(text); } catch (e) { return null; }
+}
+
+function renderRuntimeSnapshot(snap) {
+  const body = document.getElementById("snapshot-body");
+  if (!body) return;
+  if (!snap || !snap.phase) {
+    body.innerHTML = '<div id="snapshot-empty">尚无 runtime 快照</div>';
+    return;
+  }
+  const inds = snap.industries || [];
+  const rows = inds.map(x => {
+    const p = (x.prosperity === null || x.prosperity === undefined) ? "—" : x.prosperity;
+    const pe = (x.pe_pct === null || x.pe_pct === undefined) ? "—" : x.pe_pct;
+    return '<div class="snap-row"><span>' + (x.name || "") + '</span><b>景气 ' + p + ' · 估值 ' + pe + '</b></div>';
+  }).join("");
+  body.innerHTML =
+    '<div class="snap-row"><span>阶段</span><b>' + snap.phase + '</b></div>' +
+    '<div class="snap-row"><span>asof</span><b>' + (snap.asof || "—") + '</b></div>' +
+    (rows || '<div id="snapshot-empty">无行业</div>');
+}
+
+
+function isPlaceholderInd(ind) {
+  if (!ind) return true;
+  const s = Number(ind.sentiment);
+  const v = ind.valuation_pct == null ? 50 : Number(ind.valuation_pct);
+  if (!Number.isFinite(s) || !Number.isFinite(v)) return true;
+  if (ind.close == null) return true;
+  return Math.abs(s) < 1e-12 && Math.abs(v - 50) < 1e-9;
+}
+
+function trimLeadingPlaceholders(data) {
+  if (!data || !data.daily) return data;
+  const days = Object.keys(data.daily).sort();
+  let cut = 0;
+  for (const ds of days) {
+    const inds = Object.values((data.daily[ds] && data.daily[ds].industries) || {});
+    if (!inds.length) { cut++; continue; }
+    const nPh = inds.filter(isPlaceholderInd).length;
+    const nFlat = inds.filter(x => Math.abs(Number(x.sentiment)||0) < 1e-12).length;
+    if (nPh >= Math.max(1, Math.floor(0.8 * inds.length)) || nFlat >= inds.length) { cut++; continue; }
+    break;
+  }
+  if (cut <= 0) return data;
+  const kept = {};
+  for (const ds of days.slice(cut)) kept[ds] = data.daily[ds];
+  data.daily = kept;
+  if (data.meta) data.meta.trim_leading_days = cut;
+  console.info("[L4] skipped leading placeholder days:", cut, "start=", days[cut]);
+  return data;
+}
+
+function loadEmbeddedData() {
+  const el = document.getElementById("animation-embedded-data");
+  if (!el) return null;
+  const text = (el.textContent || "").trim();
+  if (!text || text === "null") return null;
+  try {
+    const data = JSON.parse(text);
+    if (data && data.daily && Object.keys(data.daily).length > 0) return data;
+  } catch (err) {
+    console.warn("内嵌 JSON 解析失败，回退示意数据：", err);
+  }
+  return null;
+}
+
+function loadExternalData() {
+  // 需本地 HTTP（file:// 下 fetch 常失败）；失败则走 mock
+  return fetch("animation_data/data.json", { cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(data => {
+      if (data && data.daily && Object.keys(data.daily).length > 0) return data;
+      throw new Error("empty daily");
+    });
+}
+
+function applyDataset(data, badge) {
+  DATA = data;
+  tradeDays = Object.keys(DATA.daily).sort();
+  filteredDays = [...tradeDays];
+  const spanEl = document.getElementById("data-span");
+  if (spanEl && filteredDays.length) {
+    spanEl.textContent = filteredDays[0] + " → " + filteredDays[filteredDays.length - 1]
+      + " · " + filteredDays.length + " 日";
+  }
+  setDataSourceBadge(badge);
+  curIdx = 0;
+  setupSlider();
+  renderFrame(0);
+}
+
+function init() {
+  renderRuntimeSnapshot(loadRuntimeSnapshot());
+  const embedded = loadEmbeddedData();
+  if (embedded) {
+    const meta = embedded.meta || {};
+    const badge = "页面内嵌 · " +
+      (meta.start || "?") + " → " + (meta.end || "?") +
+      (meta.generated ? " · 生成于 " + String(meta.generated).slice(0, 19) : "");
+    applyDataset(embedded, badge);
+    buildClockSVG();
+    bindEvents();
+    return;
+  }
+  loadExternalData().then(data => {
+    const meta = data.meta || {};
+    applyDataset(data, "外部 JSON · animation_data/data.json · " + (meta.start || "?") + " → " + (meta.end || "?"));
+    buildClockSVG();
+    bindEvents();
+  }).catch(err => {
+    console.warn("外部 JSON 不可用，回退 MOCK：", err);
+    applyDataset(window.MOCK_DATA, "内嵌示意 MOCK · 四阶段轮动剧本（非实盘；跑 build_animation.py 可写入真数）");
+    buildClockSVG();
+    bindEvents();
+  });
+}
+
+function setupSlider() {
+  const sl = document.getElementById("slider");
+  sl.min = 0;
+  sl.max = Math.max(0, filteredDays.length - 1);
+  sl.value = curIdx;
+}
+
+function bindEvents() {
+  document.getElementById("slider").addEventListener("input", () => {
+    curIdx = parseInt(document.getElementById("slider").value, 10);
+    renderFrame(curIdx);
+  });
+  document.getElementById("play-btn").addEventListener("click", togglePlay);
+  document.querySelectorAll("#speed-group button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSpeed = parseInt(btn.dataset.spd, 10);
+      document.querySelectorAll("#speed-group button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (playing) { clearInterval(playTimer); startPlay(); }
+    });
+  });
+  document.getElementById("traj-chk").addEventListener("change", e => {
+    document.getElementById("traj-panel").style.display = e.target.checked ? "block" : "none";
+    if (e.target.checked) renderTrajChart();
+  });
+  window.addEventListener("resize", () => renderFrame(curIdx));
+}
+
+function togglePlay() { playing ? stopPlay() : startPlay(); }
+
+function startPlay() {
+  playing = true;
+  document.getElementById("play-btn").textContent = "Ⅱ";
+  playTimer = setInterval(() => {
+    if (curIdx >= filteredDays.length - 1) { stopPlay(); return; }
+    curIdx++;
+    document.getElementById("slider").value = curIdx;
+    renderFrame(curIdx);
+  }, playSpeed);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(playTimer);
+  document.getElementById("play-btn").textContent = "▶";
+}
+
+/** 行业散点轨迹长度（交易日点数） */
+const TRAIL_LEN = 90;
+
+function renderFrame(idx) {
+  const ds = filteredDays[idx];
+  if (!ds || !DATA) return;
+  document.getElementById("date-label").textContent = ds;
+  const snapshot = DATA.daily[ds];
+  if (!snapshot) return;
+  const phase = snapshot.phase;
+  document.getElementById("phase-display").textContent = phase;
+  document.getElementById("phase-display").style.color = PHASE_COLORS[phase] || "var(--ink)";
+  renderMacroInfo(snapshot);
+  renderRecommendations(snapshot);
+  renderClockHighlight(phase);
+  renderMainChart(idx, filteredDays, snapshot);
+  if (document.getElementById("traj-chk").checked) renderTrajChart();
+}
+
+function renderMacroInfo(snapshot) {
+  const mKey = filteredDays[curIdx].slice(0, 7);
+  const mdata = DATA.phases[mKey] || {};
+  const releaseNote = snapshot.macro_release
+    ? "本月定相更新（模拟月初公布）"
+    : "沿用本月已公布读数";
+  document.getElementById("macro-rows").innerHTML = [
+    ["观测日", filteredDays[curIdx]],
+    ["宏观节奏", releaseNote],
+    ["PMI（月）", (snapshot.growth_idx || mdata.pmi || "—").toString()],
+    ["CPI YoY %（月）", (snapshot.cpi !== undefined ? snapshot.cpi : (mdata.cpi || "—")).toString()],
+    ["M2 YoY %（月）", mdata.m2 != null ? Number(mdata.m2).toFixed(1) : "—"],
+    ["社融 YoY %（月）", mdata.sf != null ? Number(mdata.sf).toFixed(1) : "—"],
+  ].map(([k, v]) => `<div class="info-row"><span>${k}</span><span class="info-val">${v}</span></div>`).join("");
+}
+
+function renderRecommendations(snapshot) {
+  const phase = snapshot.phase;
+  const benefited = PHASE_BENEFIT[phase] || [];
+  const inds = snapshot.industries || {};
+  const starred = [];
+  const others = [];
+  Object.keys(inds).forEach(name => {
+    const d = inds[name];
+    if ((d.sentiment > 0 && d.valuation_pct < 60) || benefited.includes(name)) starred.push(name);
+    else others.push(name);
+  });
+  document.getElementById("rec-list").innerHTML =
+    [...new Set(starred)].map(n => `<span class="rec-item starred">${n}</span>`).join("") +
+    others.map(n => `<span class="rec-item normal">${n}</span>`).join("");
+}
+
+function renderMainChart(idx, days, snapshot) {
+  const svg = document.getElementById("main-svg");
+  const wrap = document.getElementById("chart-wrap");
+  const W = wrap.clientWidth || 800;
+  const H = wrap.clientHeight || 500;
+  const PAD = { l: 58, r: 28, t: 28, b: 48 };
+  const cW = W - PAD.l - PAD.r;
+  const cH = H - PAD.t - PAD.b;
+  const xScale = v => PAD.l + (v + 1) / 2 * cW;
+  const yScale = v => PAD.t + (1 - v / 100) * cH;
+  const divX = xScale(0);
+  const divY = yScale(60);
+  const phase = snapshot.phase;
+  const benefited = PHASE_BENEFIT[phase] || [];
+
+  let html = "";
+  // Paper figure plane
+  html += `<rect x="0" y="0" width="${W}" height="${H}" fill="#faf8f3"/>`;
+
+  // Soft quadrant fills (print-friendly pastels)
+  html += `<rect x="${divX}" y="${divY}" width="${W - PAD.r - divX}" height="${H - PAD.b - divY}" fill="#dceee4" opacity="0.85"/>`;
+  html += `<rect x="${PAD.l}" y="${PAD.t}" width="${divX - PAD.l}" height="${divY - PAD.t}" fill="#f3ddd8" opacity="0.85"/>`;
+  html += `<rect x="${divX}" y="${PAD.t}" width="${W - PAD.r - divX}" height="${divY - PAD.t}" fill="#f5e6d4" opacity="0.85"/>`;
+  html += `<rect x="${PAD.l}" y="${divY}" width="${divX - PAD.l}" height="${H - PAD.b - divY}" fill="#eceae5" opacity="0.85"/>`;
+
+  // Subtle grid
+  for (let v = -1; v <= 1; v += 0.5) {
+    const x = xScale(v);
+    html += `<line x1="${x}" y1="${PAD.t}" x2="${x}" y2="${H - PAD.b}" stroke="#d5cfc3" stroke-width="0.6"/>`;
+  }
+  for (let v = 0; v <= 100; v += 20) {
+    const y = yScale(v);
+    html += `<line x1="${PAD.l}" y1="${y}" x2="${W - PAD.r}" y2="${y}" stroke="#d5cfc3" stroke-width="0.6"/>`;
+  }
+
+  // Threshold spines
+  html += `<line x1="${divX}" y1="${PAD.t}" x2="${divX}" y2="${H - PAD.b}" stroke="#5c574e" stroke-width="1" stroke-dasharray="4 3"/>`;
+  html += `<line x1="${PAD.l}" y1="${divY}" x2="${W - PAD.r}" y2="${divY}" stroke="#5c574e" stroke-width="1" stroke-dasharray="4 3"/>`;
+  html += `<rect x="${PAD.l}" y="${PAD.t}" width="${cW}" height="${cH}" fill="none" stroke="#1c1a16" stroke-width="1.1"/>`;
+
+  // Quadrant annotations (serif-like via font)
+  html += `<text x="${divX + 10}" y="${H - PAD.b - 10}" font-size="11" fill="#2a6f4e" font-style="italic">推荐区</text>`;
+  html += `<text x="${PAD.l + 8}" y="${PAD.t + 16}" font-size="11" fill="#9b3b2e" font-style="italic">规避区</text>`;
+  html += `<text x="${divX + 10}" y="${PAD.t + 16}" font-size="11" fill="#a66b2b" font-style="italic">谨慎区</text>`;
+  html += `<text x="${PAD.l + 8}" y="${H - PAD.b - 10}" font-size="11" fill="#6b6560" font-style="italic">观察区</text>`;
+
+  // Ticks
+  for (let v = -1; v <= 1; v += 0.5) {
+    const x = xScale(v);
+    html += `<line x1="${x}" y1="${H - PAD.b}" x2="${x}" y2="${H - PAD.b + 5}" stroke="#1c1a16" stroke-width="1"/>`;
+    html += `<text x="${x}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" fill="#5c574e" font-family="IBM Plex Mono,monospace">${v.toFixed(1)}</text>`;
+  }
+  for (let v = 0; v <= 100; v += 20) {
+    const y = yScale(v);
+    html += `<line x1="${PAD.l - 5}" y1="${y}" x2="${PAD.l}" y2="${y}" stroke="#1c1a16" stroke-width="1"/>`;
+    html += `<text x="${PAD.l - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#5c574e" font-family="IBM Plex Mono,monospace">${v}</text>`;
+  }
+
+  html += `<text x="${PAD.l + cW / 2}" y="${H - 8}" text-anchor="middle" font-size="12" fill="#1c1a16">景气分数 (sentiment)</text>`;
+  html += `<text x="14" y="${PAD.t + cH / 2}" text-anchor="middle" font-size="12" fill="#1c1a16" transform="rotate(-90,14,${PAD.t + cH / 2})">估值分位 (%)</text>`;
+
+  // Trails — 近 90 日，每行业独立颜色（不因受益/非受益复用两色）
+  const trailStart = Math.max(0, idx - TRAIL_LEN + 1);
+  const trailDays = days.slice(trailStart, idx + 1);
+  if (trailDays.length > 1) {
+    Object.keys(snapshot.industries).forEach(name => {
+      const pts = trailDays.map(d => {
+        const snap = DATA.daily[d];
+        if (!snap || !snap.industries[name]) return null;
+        const ind = snap.industries[name];
+        return [xScale(ind.sentiment), yScale(ind.valuation_pct)];
+      }).filter(Boolean);
+      if (pts.length < 2) return;
+      const color = industryColor(name);
+      for (let i = 1; i < pts.length; i++) {
+        const alpha = 0.10 + 0.50 * (i / pts.length);
+        html += `<line x1="${pts[i - 1][0]}" y1="${pts[i - 1][1]}" x2="${pts[i][0]}" y2="${pts[i][1]}" stroke="${color}" stroke-width="1.15" opacity="${alpha}"/>`;
+      }
+    });
+  }
+
+  // Points — 与轨迹同色；受益行业用更大半径 + 描边加粗区分
+  Object.entries(snapshot.industries).forEach(([name, d]) => {
+    const cx = xScale(d.sentiment);
+    const cy = yScale(d.valuation_pct);
+    const hi = benefited.includes(name);
+    const fill = industryColor(name);
+    const r = hi ? 6.5 : 5.2;
+    const strokeW = hi ? 2.0 : 1.4;
+    html += `<circle class="dot" data-name="${name}" cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#faf8f3" stroke-width="${strokeW}" opacity="0.95"/>`;
+    html += `<text class="dot-label" data-name="${name}" x="${cx + r + 3}" y="${cy + 3.5}" font-size="11" fill="${fill}">${name}</text>`;
+  });
+
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = html;
+  svg.querySelectorAll(".dot").forEach(el => {
+    el.addEventListener("mouseenter", ev => showTooltip(ev, snapshot));
+    el.addEventListener("mouseleave", hideTooltip);
+  });
+}
+
+function showTooltip(ev, snapshot) {
+  const name = ev.target.dataset.name;
+  const d = snapshot.industries[name];
+  if (!d) return;
+  const tt = document.getElementById("tooltip");
+  const up = v => (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
+  tt.innerHTML = `<strong>${name}</strong>
+    <div class="t-row"><span>景气分数</span><span class="t-val">${d.sentiment.toFixed(3)}</span></div>
+    <div class="t-row"><span>估值分位</span><span class="t-val">${d.valuation_pct.toFixed(1)}%</span></div>
+    <div class="t-row"><span>近1月</span><span class="t-val">${up(d.ret_1m)}</span></div>
+    <div class="t-row"><span>YTD</span><span class="t-val">${up(d.ret_ytd)}</span></div>`;
+  const rect = document.getElementById("chart-wrap").getBoundingClientRect();
+  let x = ev.clientX - rect.left + 12;
+  let y = ev.clientY - rect.top + 12;
+  if (x + 160 > rect.width) x -= 170;
+  if (y + 110 > rect.height) y -= 120;
+  tt.style.left = x + "px";
+  tt.style.top = y + "px";
+  tt.style.display = "block";
+}
+
+function hideTooltip() {
+  document.getElementById("tooltip").style.display = "none";
+}
+
+const CLOCK_PHASES = [
+  { name: "复苏期", color: "#1b7a5a", startAngle: -Math.PI / 2, endAngle: 0 },
+  { name: "过热期", color: "#b33a2b", startAngle: 0, endAngle: Math.PI / 2 },
+  { name: "滞胀期", color: "#b06d24", startAngle: Math.PI / 2, endAngle: Math.PI },
+  { name: "衰退期", color: "#2f5f8a", startAngle: Math.PI, endAngle: 3 * Math.PI / 2 }
+];
+
+function buildClockSVG() {
+  const svg = document.getElementById("clock-svg");
+  const cx = 110, cy = 88, R = 72, r = 26;
+  let html = `<rect x="0" y="0" width="220" height="170" fill="#faf8f3"/>`;
+  CLOCK_PHASES.forEach(p => {
+    const x1 = cx + R * Math.cos(p.startAngle);
+    const y1 = cy + R * Math.sin(p.startAngle);
+    const x2 = cx + R * Math.cos(p.endAngle);
+    const y2 = cy + R * Math.sin(p.endAngle);
+    const x3 = cx + r * Math.cos(p.endAngle);
+    const y3 = cy + r * Math.sin(p.endAngle);
+    const x4 = cx + r * Math.cos(p.startAngle);
+    const y4 = cy + r * Math.sin(p.startAngle);
+    const d = `M${x4},${y4} L${x1},${y1} A${R},${R} 0 0,1 ${x2},${y2} L${x3},${y3} A${r},${r} 0 0,0 ${x4},${y4} Z`;
+    html += `<path class="clock-sector" data-phase="${p.name}" d="${d}" fill="${p.color}" stroke="#faf8f3" stroke-width="2" opacity="0.35"/>`;
+    const mid = (p.startAngle + p.endAngle) / 2;
+    const lR = (R + r) / 2;
+    html += `<text x="${cx + lR * Math.cos(mid)}" y="${cy + lR * Math.sin(mid) + 3}" text-anchor="middle" font-size="10" fill="#1c1a16">${p.name.replace("期", "")}</text>`;
+  });
+  html += `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#1c1a16"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#1c1a16" stroke-width="1"/>`;
+  svg.innerHTML = html;
+}
+
+function renderClockHighlight(phase) {
+  document.querySelectorAll(".clock-sector").forEach(el => {
+    const on = el.dataset.phase === phase;
+    el.style.opacity = on ? "0.92" : "0.28";
+    el.style.stroke = on ? "#1c1a16" : "#faf8f3";
+    el.style.strokeWidth = on ? "1.5" : "2";
+  });
+}
+
+function renderTrajChart() {
+  const svg = document.getElementById("traj-svg");
+  const W = 240, H = 170;
+  const PAD = { l: 38, r: 12, t: 16, b: 30 };
+  const cW = W - PAD.l - PAD.r;
+  const cH = H - PAD.t - PAD.b;
+  const pts = filteredDays.slice(0, curIdx + 1).map(d => {
+    const snap = DATA.daily[d];
+    if (!snap) return null;
+    return { pmi: snap.growth_idx, cpi: snap.cpi, phase: snap.phase };
+  }).filter(Boolean);
+  if (!pts.length) { svg.innerHTML = ""; return; }
+
+  const pmis = pts.map(p => p.pmi);
+  const cpis = pts.map(p => p.cpi);
+  const pmiMin = Math.min(...pmis) - 0.5, pmiMax = Math.max(...pmis) + 0.5;
+  const cpiMin = Math.min(...cpis) - 0.2, cpiMax = Math.max(...cpis) + 0.2;
+  const xS = v => PAD.l + (v - pmiMin) / (pmiMax - pmiMin) * cW;
+  const yS = v => PAD.t + (1 - (v - cpiMin) / (cpiMax - cpiMin)) * cH;
+
+  let html = `<rect x="0" y="0" width="${W}" height="${H}" fill="#faf8f3"/>`;
+  html += `<rect x="${PAD.l}" y="${PAD.t}" width="${cW}" height="${cH}" fill="#fff" stroke="#1c1a16" stroke-width="1"/>`;
+  for (let i = 0; i <= 4; i++) {
+    const x = PAD.l + i / 4 * cW;
+    const y = PAD.t + i / 4 * cH;
+    html += `<line x1="${x}" y1="${PAD.t}" x2="${x}" y2="${PAD.t + cH}" stroke="#e0dbd0" stroke-width="0.6"/>`;
+    html += `<line x1="${PAD.l}" y1="${y}" x2="${PAD.l + cW}" y2="${y}" stroke="#e0dbd0" stroke-width="0.6"/>`;
+  }
+  const x50 = xS(50), y2 = yS(2);
+  if (x50 >= PAD.l && x50 <= PAD.l + cW)
+    html += `<line x1="${x50}" y1="${PAD.t}" x2="${x50}" y2="${PAD.t + cH}" stroke="#8a8376" stroke-width="1" stroke-dasharray="3,2"/>`;
+  if (y2 >= PAD.t && y2 <= PAD.t + cH)
+    html += `<line x1="${PAD.l}" y1="${y2}" x2="${PAD.l + cW}" y2="${y2}" stroke="#8a8376" stroke-width="1" stroke-dasharray="3,2"/>`;
+
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i];
+    const alpha = 0.25 + 0.7 * (i / pts.length);
+    html += `<line x1="${xS(p0.pmi)}" y1="${yS(p0.cpi)}" x2="${xS(p1.pmi)}" y2="${yS(p1.cpi)}" stroke="${PHASE_COLORS[p1.phase] || "#5c574e"}" stroke-width="1.4" opacity="${alpha}"/>`;
+  }
+  const cur = pts[pts.length - 1];
+  html += `<circle cx="${xS(cur.pmi)}" cy="${yS(cur.cpi)}" r="3.5" fill="${PHASE_COLORS[cur.phase] || "#1c1a16"}" stroke="#faf8f3" stroke-width="1.2"/>`;
+
+  [0, 0.5, 1].forEach((t, i) => {
+    const x = PAD.l + t * cW;
+    const val = (pmiMin + (pmiMax - pmiMin) * t).toFixed(1);
+    html += `<text x="${x}" y="${PAD.t + cH + 12}" text-anchor="middle" font-size="9" fill="#5c574e" font-family="IBM Plex Mono,monospace">${val}</text>`;
+  });
+  [1, 0.5, 0].forEach((t, i) => {
+    const y = PAD.t + t * cH;
+    const val = (cpiMin + (cpiMax - cpiMin) * (1 - t)).toFixed(1);
+    html += `<text x="${PAD.l - 4}" y="${y + 3}" text-anchor="end" font-size="9" fill="#5c574e" font-family="IBM Plex Mono,monospace">${val}</text>`;
+  });
+  html += `<text x="${PAD.l + cW / 2}" y="${H - 4}" text-anchor="middle" font-size="10" fill="#1c1a16">PMI</text>`;
+  html += `<text x="8" y="${PAD.t + cH / 2}" text-anchor="middle" font-size="10" fill="#1c1a16" transform="rotate(-90,8,${PAD.t + cH / 2})">CPI</text>`;
+  svg.innerHTML = html;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+}
+
+window.addEventListener("load", init);
+</script>
+</body>
+</html>

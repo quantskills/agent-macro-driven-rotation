@@ -19,13 +19,13 @@ backtest.py - 宏观阶段回测脚本（改进版美林时钟有效性验证）
   # 无 API 时仅允许显式模拟（禁止静默模拟）：
   python scripts/backtest.py --allow-simulate --start_date 2022-01-01 --end_date 2023-12-31
 
-数据来源（回测写死代码；定码日期 2026-07-28，对话路径仍须先 get_macro_detail）：
+数据来源（以 scripts/macro_catalog.py 为准；live 前 macro_resolver 可自动定码）：
   - 制造业 PMI：get_macro_ci(CI0000007)
-  - CPI 同比：get_macro_pi(PI0000003)
-  - M2 同比：get_macro_mb(MB0000002)
-  - 社融存量同比：get_macro_fs(FS0042573)
-  - 政策预期差代理：PMI 新订单−库存（CI0000010 − CI0000017；不可用则 policy_gap 置空）
-  - 行业行情：get_index_daily
+  - CPI 同比：get_macro_pi(PI0000047)
+  - M2 同比：get_macro_mb(MB0000006)
+  - 社融存量同比：get_macro_mb(MB0000091)（社融属 MB，非 FS）
+  - 政策预期差代理：PMI 新订单−产成品库存（CI0000009 − CI0000012）
+  - 行业行情：get_index_daily / get_fund_daily
   - 已废弃方法名：get_macro_pm / get_macro_fi（勿再使用）
 
 改进版美林时钟阶段判定规则（四维）：
@@ -96,8 +96,8 @@ def parse_args():
     )
     p.add_argument(
         "--output_dir",
-        default="backtest_output",
-        help="输出目录（默认 backtest_output/）",
+        default="reports/backtest",
+        help="输出目录（默认 reports/backtest/）",
     )
     p.add_argument(
         "--allow-simulate",
@@ -184,7 +184,7 @@ def load_macro_and_determine_phases(
             no_s = new_orders.set_index("date")["v"].sort_index()
             inv_s = inventory.set_index("date")["v"].sort_index()
             policy_gap_s = (no_s - inv_s).rename("policy_gap")
-            print(f"  [INFO] 政策预期差代理 = PMI新订单({sym_no}) − 库存({sym_inv})")
+            print(f"  [INFO] 政策预期差代理 = PMI新订单({sym_no}) - 库存({sym_inv})")
         except Exception as pe:
             print(f"  [WARN] 政策预期差代理不可用（{pe}），policy_gap 置空")
 
@@ -616,6 +616,7 @@ def plot_nav(
 # ---------------------------------------------------------------------------
 
 def main():
+    print("[TIP] 推荐统一入口：python -m runtime --backtest 或 python -m runtime backtest …", file=sys.stderr)
     args = parse_args()
     output_dir = pathlib.Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

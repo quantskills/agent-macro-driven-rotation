@@ -29,6 +29,12 @@ def parse_args():
     p.add_argument("--output-dir", default="reports/samples/export")
     p.add_argument("--input", default="", help="可选 JSON 载荷")
     p.add_argument("--format", choices=["csv", "xlsx", "both"], default="both")
+    p.add_argument(
+        "--live",
+        action="store_true",
+        help="跑 runtime 全链路后导出（需凭证）；覆盖 --phase/--input 示意数据",
+    )
+    p.add_argument("--query", default="按改进版美林时钟做一轮完整行业轮动报告")
     return p.parse_args()
 
 
@@ -107,30 +113,44 @@ def write_xlsx(path: pathlib.Path, sheets: Dict[str, List[Dict[str, Any]]]) -> N
 
 
 def main():
+    print("[TIP] 推荐统一入口：python -m runtime --live （已含 L5 导出）", file=sys.stderr)
     args = parse_args()
-    if args.input:
+    out_dir = pathlib.Path(args.output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.live:
+        root = SCRIPT_DIR.parent
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from export_runtime import export_state, state_to_payload
+        from runtime.graph import run
+
+        state = run(args.query, mock=False, output_dir=str(out_dir / "runtime_tmp"))
+        paths = export_state(state, str(out_dir), fmt=args.format)
+        for k, p in paths.items():
+            print(f"[OK] live 导出 {k}: {p}")
+        payload = state_to_payload(state)
+    elif args.input:
         payload = json.loads(pathlib.Path(args.input).read_text(encoding="utf-8"))
     else:
         payload = default_payload(args.phase)
 
-    out_dir = pathlib.Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    if not args.live:
+        sheets = {
+            "macro": payload.get("macro", []),
+            "prosperity": payload.get("prosperity", []),
+            "valuation": payload.get("valuation", []),
+            "recommend": payload.get("recommend", []),
+        }
 
-    sheets = {
-        "macro": payload.get("macro", []),
-        "prosperity": payload.get("prosperity", []),
-        "valuation": payload.get("valuation", []),
-        "recommend": payload.get("recommend", []),
-    }
+        if args.format in ("csv", "both"):
+            for name, rows in sheets.items():
+                path = out_dir / f"{name}.csv"
+                write_csv(path, rows)
+                print(f"[OK] CSV 已写入：{path}")
 
-    if args.format in ("csv", "both"):
-        for name, rows in sheets.items():
-            path = out_dir / f"{name}.csv"
-            write_csv(path, rows)
-            print(f"[OK] CSV 已写入：{path}")
-
-    if args.format in ("xlsx", "both"):
-        write_xlsx(out_dir / "rotation_export.xlsx", sheets)
+        if args.format in ("xlsx", "both"):
+            write_xlsx(out_dir / "rotation_export.xlsx", sheets)
 
     # 免责声明
     (out_dir / "README.txt").write_text(

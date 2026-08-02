@@ -1,16 +1,16 @@
-# 推荐解释器：select-stock-pro_v2.5.0（Python 3.12）
-#   D:\env\anaconda3\envs\select-stock-pro_v2.5.0\python.exe
+# 推荐环境：skills-env（Python 3.12）
+#   D:\env\anaconda3\envs\skills-env\python.exe
 # 安装：pip install -r requirements.txt
 #
-# 说明：panda-data 元数据声明 numpy<2，但本环境以 numpy==2.0.2 与选股框架对齐；
-# 实测 get_macro_* / get_index_daily / get_fund_daily 可用。勿随意降到 numpy 1.x。
+# numpy 与 panda-data 元数据一致：numpy>=1.22,<2
 
-pandas>=2.0
-numpy==2.0.2
+pandas>=2.0,<3
+numpy>=1.22
 matplotlib>=3.7
 plotly>=5.18
-panda-data>=0.1.0
+panda-data>=0.0.9
 openpyxl>=3.1
+requests>=2.34.2
 
 # 可选编排（未装则走 runtime 顺序 pipeline）
-# langgraph>=0.2.0
+langgraph>=0.2.0

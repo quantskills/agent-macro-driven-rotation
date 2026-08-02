@@ -1,80 +1,27 @@
 # -*- coding: utf-8 -*-
-"""申万一级行业映射 + Pandadata 可拉行情代理码（回测 / 导出 / 动画共用）。
+"""宏观阶段→行业名（业务规则）+ 行情/申万码解析入口。
 
-定码说明（2026-07-30，行情代理复核 2026-07-30）：
-  - 业务映射仍对齐 SKILL.md「宏观阶段 → 行业」
-  - 申万一级码见 SW_INDUSTRY_CODES（.SI）；panda_data.get_index_daily 对 .SI 常返回 0 行
-  - 实际拉行情用 INDUSTRY_INDEX_CODES（SH/SZ 指数或黄金 ETF）
-  - 对话路径仍须先定码；代理指数≠申万官方点位，仅作景气/动量近似
+重要区分：
+  - PHASE_INDUSTRY_NAMES：美林阶段受益行业（来自 SKILL，属研究框架，不能靠 API「猜」）
+  - 申万码 / 行情代理 / 另类类目：优先 code_resolver 自动匹配 panda_data；
+    失败时回退下方 FALLBACK_* 静态表（仅兜底）
 """
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
-# 定码日期（写入 CSV / 文档可追溯）
+# 静态兜底定码日期（自动解析成功时以 cache.updated_at 为准）
 CODE_VERIFIED_DATE = "2026-07-30"
 
-# 申万一级行业指数码（文档参考；勿直接用于 get_index_daily）
-SW_INDUSTRY_CODES: Dict[str, str] = {
-    "电子": "801080.SI",
-    "医药生物": "801150.SI",
-    "计算机": "801750.SI",
-    "食品饮料": "801120.SI",
-    "家用电器": "801110.SI",
-    "社会服务": "801890.SI",
-    "有色金属": "801050.SI",
-    "煤炭": "801950.SI",
-    "石油石化": "801960.SI",
-    "钢铁": "801040.SI",
-    "银行": "801780.SI",
-    "农林牧渔": "801010.SI",
-    "公用事业": "801160.SI",
-    "交通运输": "801170.SI",
-    "黄金": "399293.SZ",  # 旧占位，已证实非黄金主题；行情见下方代理
-}
-
-# Pandadata 可拉日行情的代理（经 get_index_daily / get_fund_daily 冒烟有数据）
-# 名称 → (symbol, feed)  feed: index | fund
-INDUSTRY_PRICE_FEEDS: Dict[str, Tuple[str, str]] = {
-    "电子": ("399811.SZ", "index"),      # CSSW电子
-    "医药生物": ("000991.SH", "index"),  # 全指医药
-    "计算机": ("000993.SH", "index"),    # 全指信息
-    "食品饮料": ("399396.SZ", "index"),  # 国证食品
-    "家用电器": ("000990.SH", "index"),  # 全指消费（家电无独立可用码时用大消费代理）
-    "社会服务": ("000990.SH", "index"),
-    "有色金属": ("399395.SZ", "index"),  # 国证有色
-    "煤炭": ("399998.SZ", "index"),      # 中证煤炭
-    "石油石化": ("000068.SH", "index"),  # 上证资源（能化/资源代理）
-    "钢铁": ("399440.SZ", "index"),      # 国证钢铁
-    "银行": ("399986.SZ", "index"),      # 中证银行
-    "农林牧渔": ("399814.SZ", "index"),  # 大农业
-    "公用事业": ("000995.SH", "index"),  # 全指公用
-    "交通运输": ("399433.SZ", "index"),  # 国证交运
-    "黄金": ("518880.SH", "fund"),       # 黄金 ETF（指数库无黄金主题码）
-    # 动画短标签
-    "消费": ("000990.SH", "index"),      # 全指消费
-    "医药": ("000991.SH", "index"),
-    "资源": ("000068.SH", "index"),      # 上证资源
-    "周期": ("399440.SZ", "index"),      # 国证钢铁（周期代理）
-    "防御消费": ("399396.SZ", "index"),  # 国证食品
-    "债券": ("000012.SH", "index"),      # 国债指数
-}
-
-# 兼容旧接口：行业中文名 → 行情代码
-INDUSTRY_INDEX_CODES: Dict[str, str] = {
-    name: feed[0] for name, feed in INDUSTRY_PRICE_FEEDS.items()
-}
-
-# 阶段 → 推荐行业中文名（与 SKILL / guide 对齐）
+# ── 业务规则：阶段 → 申万一级行业中文名（与 SKILL.md 对齐）────────────────
 PHASE_INDUSTRY_NAMES: Dict[str, List[str]] = {
-    "复苏期": ["电子", "医药生物", "计算机", "食品饮料", "家用电器"],
+    "复苏期": ["电子", "医药生物", "计算机", "食品饮料", "社会服务"],
     "过热期": ["有色金属", "煤炭", "石油石化", "钢铁", "银行"],
     "滞胀期": ["农林牧渔", "医药生物", "公用事业", "交通运输"],
     "衰退期": ["黄金"],
 }
 
-# 图表 / 动画展示短标签
 PHASE_DISPLAY_LABELS: Dict[str, List[str]] = {
     "复苏期": ["电子", "消费", "医药"],
     "过热期": ["资源", "周期", "银行"],
@@ -82,38 +29,184 @@ PHASE_DISPLAY_LABELS: Dict[str, List[str]] = {
     "衰退期": ["黄金", "债券", "现金"],
 }
 
-# 动画宇宙（短标签全集）
 ANIMATION_INDUSTRIES: List[str] = [
     "电子", "消费", "医药", "资源", "周期", "银行", "防御消费", "公用事业", "黄金", "债券"
 ]
 
+# ── 静态兜底（API 不可用时）────────────────────────────────────────────
+# 注意：申万码须与 get_industry_detail 一致；旧表曾误把社会服务写成 801890（实为机械设备）
+FALLBACK_SW_CODES: Dict[str, str] = {
+    "电子": "801080",
+    "医药生物": "801150",
+    "计算机": "801750",
+    "食品饮料": "801120",
+    "家用电器": "801110",
+    "社会服务": "801210",
+    "有色金属": "801050",
+    "煤炭": "801950",
+    "石油石化": "801960",
+    "钢铁": "801040",
+    "银行": "801780",
+    "农林牧渔": "801010",
+    "公用事业": "801160",
+    "交通运输": "801170",
+}
+
+FALLBACK_PRICE_FEEDS: Dict[str, Tuple[str, str]] = {
+    "电子": ("399811.SZ", "index"),
+    "医药生物": ("000991.SH", "index"),
+    "计算机": ("000993.SH", "index"),
+    "食品饮料": ("399396.SZ", "index"),
+    "家用电器": ("000990.SH", "index"),
+    "社会服务": ("000990.SH", "index"),
+    "有色金属": ("399395.SZ", "index"),
+    "煤炭": ("399998.SZ", "index"),
+    "石油石化": ("000068.SH", "index"),
+    "钢铁": ("399440.SZ", "index"),
+    "银行": ("399986.SZ", "index"),
+    "农林牧渔": ("399814.SZ", "index"),
+    "公用事业": ("000995.SH", "index"),
+    "交通运输": ("399433.SZ", "index"),
+    "黄金": ("518880.SH", "fund"),
+    "消费": ("000990.SH", "index"),
+    "医药": ("000991.SH", "index"),
+    "资源": ("000068.SH", "index"),
+    "周期": ("399440.SZ", "index"),
+    "防御消费": ("399396.SZ", "index"),
+    "债券": ("000012.SH", "index"),
+}
+
+# 兼容旧名
+SW_INDUSTRY_CODES: Dict[str, str] = {
+    k: (v if "." in v else f"{v}.SI") for k, v in FALLBACK_SW_CODES.items()
+}
+INDUSTRY_PRICE_FEEDS: Dict[str, Tuple[str, str]] = dict(FALLBACK_PRICE_FEEDS)
+INDUSTRY_INDEX_CODES: Dict[str, str] = {
+    name: feed[0] for name, feed in INDUSTRY_PRICE_FEEDS.items()
+}
+
+# 另类类目静态兜底（优先用 code_resolver 关键词匹配）
+INDUSTRY_ALT_CATEGORIES: Dict[str, List[str]] = {
+    "电子": ["ED"],
+    "计算机": ["ED"],
+    "医药生物": ["MD"],
+    "医药": ["MD"],
+    "家用电器": ["HA"],
+    "食品饮料": ["EC", "OF"],
+    "消费": ["EC", "OF"],
+    "防御消费": ["EC", "OF"],
+    "社会服务": ["RB", "OF"],
+    "石油石化": ["EH"],
+    "有色金属": ["EH"],
+    "资源": ["EH"],
+    "周期": ["EH"],
+}
+
+PREFERRED_ALT_SYMBOLS: Dict[str, List[str]] = {
+    "电子": ["ED0000072"],
+    "计算机": ["ED0000072"],
+}
+
+_USE_AUTO = True
+
+
+def set_auto_resolve(enabled: bool) -> None:
+    global _USE_AUTO
+    _USE_AUTO = enabled
+
+
+def refresh_codes_from_api(force: bool = False) -> Dict[str, str]:
+    """用 get_industry_detail / get_index_detail 刷新模块级码表。"""
+    from code_resolver import get_resolver
+
+    r = get_resolver()
+    sw = r.refresh_sw_industries(force=force)
+    # 同步 SW 展示码
+    global SW_INDUSTRY_CODES, INDUSTRY_PRICE_FEEDS, INDUSTRY_INDEX_CODES
+    SW_INDUSTRY_CODES = {
+        k: (v if str(v).endswith((".SI", ".SH", ".SZ")) else f"{v}.SI")
+        for k, v in sw.items()
+    }
+    # 预解析阶段相关 + 动画短标签
+    names = set()
+    for lst in PHASE_INDUSTRY_NAMES.values():
+        names.update(lst)
+    names.update(ANIMATION_INDUSTRIES)
+    feeds: Dict[str, Tuple[str, str]] = dict(FALLBACK_PRICE_FEEDS)
+    notes: Dict[str, str] = {}
+    for name in sorted(names):
+        if name == "现金":
+            continue
+        try:
+            sym, feed, note = r.resolve_price_feed(name, force=force)
+            feeds[name] = (sym, feed)
+            notes[name] = note
+        except Exception as e:
+            notes[name] = f"fallback:{e}"
+    INDUSTRY_PRICE_FEEDS = feeds
+    INDUSTRY_INDEX_CODES = {n: f[0] for n, f in feeds.items()}
+    return notes
+
+
+def price_feed(name: str) -> Tuple[str, str]:
+    """返回 (symbol, feed_kind)。live 时自动匹配，失败回退静态表。"""
+    if _USE_AUTO:
+        try:
+            from code_resolver import get_price_feed
+
+            return get_price_feed(name)
+        except Exception:
+            pass
+    return INDUSTRY_PRICE_FEEDS.get(name) or FALLBACK_PRICE_FEEDS.get(name, ("", "index"))
+
+
+def alt_categories(name: str) -> List[str]:
+    if _USE_AUTO:
+        try:
+            from code_resolver import get_alt_categories
+
+            cats = get_alt_categories(name)
+            if cats:
+                return cats
+        except Exception:
+            pass
+    return list(INDUSTRY_ALT_CATEGORIES.get(name, []))
+
+
+def sw_code(name: str) -> str:
+    if _USE_AUTO:
+        try:
+            from code_resolver import get_resolver
+
+            c = get_resolver().sw_code(name)
+            if c:
+                return c if "." in c else f"{c}.SI"
+        except Exception:
+            pass
+    return SW_INDUSTRY_CODES.get(name) or (
+        f"{FALLBACK_SW_CODES[name]}.SI" if name in FALLBACK_SW_CODES else ""
+    )
+
 
 def phase_index_codes(phase: str) -> List[str]:
-    """返回某宏观阶段推荐行业的行情代理代码列表。"""
-    names = PHASE_INDUSTRY_NAMES.get(phase, [])
     codes = []
-    for name in names:
-        code = INDUSTRY_INDEX_CODES.get(name)
+    for name in PHASE_INDUSTRY_NAMES.get(phase, []):
+        code, _ = price_feed(name)
         if code:
             codes.append(code)
     return codes
 
 
 def all_phase_codes() -> Dict[str, List[str]]:
-    """阶段 → 指数代码（供 backtest PHASE_INDUSTRIES 使用）。"""
     return {phase: phase_index_codes(phase) for phase in PHASE_INDUSTRY_NAMES}
 
 
 def name_code_pairs(phase: str) -> List[Tuple[str, str]]:
-    """返回 (行业名, 代码) 列表。"""
     pairs = []
     for name in PHASE_INDUSTRY_NAMES.get(phase, []):
-        code = INDUSTRY_INDEX_CODES.get(name)
+        code, _ = price_feed(name)
         if code:
             pairs.append((name, code))
+        else:
+            pairs.append((name, ""))
     return pairs
-
-
-def price_feed(name: str) -> Tuple[str, str]:
-    """返回 (symbol, feed_kind)，feed_kind 为 index 或 fund。"""
-    return INDUSTRY_PRICE_FEEDS.get(name, ("", "index"))

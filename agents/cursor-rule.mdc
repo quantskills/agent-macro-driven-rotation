@@ -48,10 +48,10 @@ alwaysApply: false
 
 - **六步工作流**：意图识别 → 宏观定相（macro-monitor）→ 行业初筛 → 景气确认（macro-altdata-nowcast）→ 估值过滤（index-valuation-rotation）→ 综合输出
 - **改进版美林时钟四维**：增长（PMI/GDP）+ 通胀（CPI）+ 流动性（M2/社融）+ 政策预期差；流动性须进入判定分支或辅助字段
-- **图表**：每次分析调用 `_writer.render_all` 生成三图；失败则 ASCII 并标明降级
-- **输出分层**：L1–L3 每次必出；L4=`scripts/export_dashboard.py`，L5=`scripts/export_data.py`（用户请求时生成）
+- **图表**：每次分析调用 `chart_writer.render_all` 生成三图；失败则 ASCII 并标明降级
+- **输出分层**：L1–L3 每次必出；L4/L5 由 `python -m runtime` 统一写出（`l4.html` + `export/*`）
 - **数据来源**：全部来自 Pandadata API（Python 包名 `panda_data`），禁止凭记忆引用数值
-- **先定码再取数**：使用 get_macro_detail 确认指标代码后再调用数据接口（PMI=`get_macro_ci`，社融=`get_macro_fs`）
+- **先定码再取数**：使用 get_macro_detail 确认指标代码后再调用数据接口（PMI=`get_macro_ci`，社融=`get_macro_mb`）
 - **边界**：分析 Agent，非 alpha 生产包
 - **免责声明**：每份报告末尾必须包含免责声明
-- **校验**：`python scripts/validate_report.py <报告.md>`
+- **校验 / 清理**：`python -m runtime validate <报告.md>`；`python -m runtime clean`

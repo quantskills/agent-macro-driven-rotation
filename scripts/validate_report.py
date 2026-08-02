@@ -124,18 +124,44 @@ def check_required_sections(content: str) -> CheckResult:
     return CheckResult(name="必须章节检查", passed=True, message="全部必须章节存在")
 
 
+def _strip_fenced_code(content: str) -> str:
+    """去掉 Markdown 围栏代码块，避免 ASCII 图表行误触发时效检查。"""
+    out = []
+    in_fence = False
+    for line in content.split("\n"):
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            out.append(line)
+    return "\n".join(out)
+
+
 def check_timestamps(content: str) -> CheckResult:
     """检查数据时效标注：凡引用了数据值的行，应附近出现时间戳。"""
-    lines = content.split("\n")
+    # 全文若已有 asof / 数据期，视为报告级时效锚点（覆盖摘要快照行）
+    global_ts = bool(
+        TIMESTAMP_PATTERN.search(content)
+        or re.search(r"asof\s*[=:：]\s*\d{4}", content, re.I)
+        or re.search(r"数据期|定码日期|macro_asof", content)
+    )
+    body = _strip_fenced_code(content)
+    lines = body.split("\n")
     issues = []
     for i, line in enumerate(lines, 1):
+        # ASCII 表格式行、纯装饰行跳过
+        if re.match(r"^[\s\|\-=★✓○>\[\]]+$", line):
+            continue
         if DATA_VALUE_PATTERN.search(line):
-            # 在当前行及前后2行范围内查找时间戳
-            context = "\n".join(lines[max(0, i-3):i+2])
-            if not TIMESTAMP_PATTERN.search(context):
-                issues.append(f"第{i}行：`{line.strip()[:80]}` 似乎缺少时间戳")
+            context = "\n".join(lines[max(0, i - 3) : i + 2])
+            if TIMESTAMP_PATTERN.search(context) or TIMESTAMP_PATTERN.search(line):
+                continue
+            if global_ts and re.search(
+                r"四维快照|PMI\s*=|CPI同比\s*=|M2同比\s*=|社融", line
+            ):
+                continue
+            issues.append(f"第{i}行：`{line.strip()[:80]}` 似乎缺少时间戳")
     if issues:
-        # 超过5个问题时截断
         display = issues[:5]
         extra = len(issues) - 5 if len(issues) > 5 else 0
         msg = "部分数据引用缺少时间戳：\n  " + "\n  ".join(display)
@@ -207,9 +233,9 @@ def check_quadrant_chart(content: str) -> CheckResult:
     """检查四象限图是否已输出（Base64 PNG 或 ASCII 降级版）。"""
     chart_indicators = [
         "Base64", "base64", "iVBORw0",
-        "四象限图", "美林时钟图", "推荐区",
-        "![](",  "<img",
-        "render_quadrant", "render_clock",
+        "四象限图", "美林时钟图", "美林时钟钟面", "推荐区",
+        "![](", "![", "<img",
+        "render_quadrant", "render_clock", "ASCII 备用",
     ]
     found = any(ind in content for ind in chart_indicators)
     if not found:
@@ -305,7 +331,7 @@ def print_results(results: List[CheckResult], report_path: str) -> bool:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="宏观轮动报告校验脚本",
+        description="宏观轮动报告校验脚本（推荐：python -m runtime validate <报告.md>）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

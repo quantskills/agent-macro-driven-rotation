@@ -56,8 +56,9 @@
 | 计算机 | IT 投资需求随企业盈利改善回升 |
 | 医药生物 | 消费属性加创新驱动，复苏初期防御转进攻 |
 | 食品饮料 | 消费信心修复，可选消费扩散至必选 |
-| 家用电器 | 地产竣工修复带动家电需求 |
 | 社会服务 | 出行餐饮需求弹性大，复苏弹性最高 |
+
+（与 `SKILL.md` / `scripts/industry_codes.PHASE_INDUSTRY_NAMES` 对齐；家用电器可作扩散观察，不列入初筛五行业。）
 
 ### 2.2 过热期受益行业
 
@@ -134,7 +135,7 @@
 
 ## 4. 四象限图绘制规范
 
-**所有图表通过 `_writer.py` 中的函数生成**，不得手动绘图或省略图表。
+**所有图表通过 `scripts/chart_writer.py` 中的函数生成**，不得手动绘图或省略图表。
 
 ### 4.1 美林时钟钟面图（`render_clock_chart`）
 
@@ -160,7 +161,7 @@
 ### 4.4 一次性调用三张图
 
 ```python
-from _writer import render_all
+from chart_writer import render_all
 
 charts = render_all(
     current_phase="复苏期",
@@ -180,7 +181,7 @@ charts = render_all(
 ### 4.5 降级（图表失败时输出 ASCII 表格）
 
 ```python
-from _writer import ascii_clock, ascii_valuation_chart
+from chart_writer import ascii_clock, ascii_valuation_chart
 print(ascii_clock("复苏期"))
 print(ascii_valuation_chart(industries_data))
 ```
@@ -188,12 +189,10 @@ print(ascii_valuation_chart(industries_data))
 ### 4.6 L4 / L5 导出（用户请求时）
 
 ```bash
-# L4a 静态 Plotly 仪表盘
-python scripts/export_dashboard.py --phase 复苏期 --output reports/dashboard.html
-
-# L4b 动态四象限（科研绘图风）：打开根目录 animation.html 即可，数据已内嵌
-python scripts/build_animation.py --start_date 2022-01-01 --end_date 2026-07-25
-# 默认写入 animation_data/data.json，并内嵌进 animation.html（无需用户点「加载 JSON」）
+# L4 统一页（模板 templates/l4.html → 产物 l4.html）
+python scripts/export_l4.py --output reports/runtime_out/l4.html --phase 复苏期
+# 重建历史内嵌（需凭证；写入模板或产物页）
+python scripts/export_l4.py --rebuild --output reports/runtime_out/l4.html --start_date 2022-01-01
 # 只要 JSON、不改 HTML：加 --no-embed
 
 # L5 CSV / XLSX

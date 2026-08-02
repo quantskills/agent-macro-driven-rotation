@@ -1,0 +1,47 @@
+# QuantSkills / 发布用元数据（给人看的正文在 SKILL.md；勿把本文件当使用说明）
+name: agent-macro-driven-rotation
+title: 宏观驱动行业轮动 Agent
+license: GPL-3.0-only
+requires:
+  - macro-monitor
+  - macro-altdata-nowcast
+  - index-valuation-rotation
+tags:
+  - quant
+  - macro
+  - rotation
+  - merrill-lynch-clock
+  - industry
+  - pandadata
+  - agent
+metadata:
+  organization: QuantSkills
+  organization_url: https://github.com/quantskills
+  repository: agent-macro-driven-rotation
+  project_type: agent
+  collection: macro-rotation
+quantSkills:
+  project_type: agent
+  category: analyst
+  tags:
+    - quant
+    - macro
+    - rotation
+    - merrill-lynch-clock
+    - industry
+    - pandadata
+    - agent
+  platforms:
+    - claude-code
+    - codex
+    - hermes
+    - openclaw
+    - cursor
+  status: draft
+  validation_level: runnable
+  maintainer_type: community
+  summary_zh: 宏观驱动行业轮动 Agent：改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤，输出行业轮动推荐与四象限图。
+  requires:
+    - macro-monitor
+    - macro-altdata-nowcast
+    - index-valuation-rotation

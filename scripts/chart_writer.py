@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-_writer.py ── 宏观驱动行业轮动 Agent 图表生成工具
+chart_writer.py ── 宏观驱动行业轮动 Agent 图表生成工具
 
 公开函数：
   render_clock_chart(current_phase, data_date, output_dir)
@@ -359,7 +359,7 @@ def ascii_valuation_chart(industries_data: List[Dict]) -> str:
 
 if __name__ == "__main__":
     import pandas as pd, pathlib as pl
-    OUT_DIR = str(pl.Path(__file__).resolve().parent / "test_charts")
+    OUT_DIR = str(pl.Path(__file__).resolve().parent.parent / "reports" / "test_charts")
     pl.Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
     dates = pd.date_range("2023-01", periods=20, freq="MS")
     g0 = [4.5,4.8,5.1,5.3,5.6,5.2,4.9,5.0,5.4,5.7,5.9,5.5,5.1,4.8,5.2,5.6,6.0,5.8,5.3,4.9]

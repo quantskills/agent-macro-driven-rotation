@@ -24,7 +24,8 @@ MACRO_SERIES: Dict[str, Dict[str, Any]] = {
         "label": "CPI同比",
         "aliases": ["cpi同比", "cpi", "cpi yoy"],
         "method": "get_macro_pi",
-        "symbol": "PI0000003",
+        # 注意：PI0000003 实为「居住:水电燃料」；官方当月同比主序列为 PI0000047
+        "symbol": "PI0000047",
         "tol": 0.05,
         "unit": "pct",
     },
@@ -32,28 +33,30 @@ MACRO_SERIES: Dict[str, Dict[str, Any]] = {
         "label": "M2同比",
         "aliases": ["m2同比", "m2", "m2 yoy"],
         "method": "get_macro_mb",
-        "symbol": "MB0000002",
+        # 注意：MB0000002 实为 M0 同比；M2 同比主序列为 MB0000006
+        "symbol": "MB0000006",
         "tol": 0.05,
         "unit": "pct",
     },
     "sf": {
         "label": "社融存量同比",
-        "aliases": ["社融存量同比", "社融同比", "社融", "社会融资存量同比"],
-        "method": "get_macro_fs",
-        "symbol": "FS0042573",
+        "aliases": ["社融存量同比", "社融同比", "社融", "社会融资存量同比", "社会融资规模存量增速"],
+        # 社融在 Pandadata 属 MB 类（非 FS）
+        "method": "get_macro_mb",
+        "symbol": "MB0000091",
         "tol": 0.05,
         "unit": "pct",
     },
 }
 
-# 政策预期差代理：新订单 − 库存（同属 get_macro_ci）
+# 政策预期差代理：新订单 − 产成品库存（同属 get_macro_ci）
 POLICY_GAP: Dict[str, Any] = {
     "label": "政策预期差(新订单−库存)",
     "aliases": ["政策预期差", "新订单−库存", "新订单-库存", "policy_gap", "新订单－库存"],
     "method": "get_macro_ci",
-    "new_orders_symbol": "CI0000010",
-    "inventory_symbol": "CI0000017",
-    "symbol": "CI0000010-CI0000017",  # 对账复合键
+    "new_orders_symbol": "CI0000009",
+    "inventory_symbol": "CI0000012",
+    "symbol": "CI0000009-CI0000012",
     "tol": 0.15,
     "unit": "diff",
     "composite": True,
@@ -65,7 +68,7 @@ MACRO_SYMBOLS_ANIM: Dict[str, Tuple[str, str]] = {
     "pmi": ("ci", MACRO_SERIES["pmi"]["symbol"]),
     "cpi": ("pi", MACRO_SERIES["cpi"]["symbol"]),
     "m2": ("mb", MACRO_SERIES["m2"]["symbol"]),
-    "sf": ("fs", MACRO_SERIES["sf"]["symbol"]),
+    "sf": ("mb", MACRO_SERIES["sf"]["symbol"]),
 }
 
 # reconcile 用的完整目录（含 policy_gap）

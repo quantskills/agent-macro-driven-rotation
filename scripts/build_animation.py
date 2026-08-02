@@ -8,7 +8,7 @@ build_animation.py
     python scripts/build_animation.py \
         --start_date 2022-01-01 \
         --end_date   2026-07-25 \
-        --output     animation_data/data.json
+        --output     reports/runtime_out/l4_data.json
 
 输出格式：
 {
@@ -43,15 +43,15 @@ import numpy as np
 # ── CLI ──────────────────────────────────────────────────────────────────────
 def _parse_args():
     p = argparse.ArgumentParser(
-        description="生成动态四象限网页所需的 JSON，并默认内嵌进 animation.html（打开即用，无需手动加载）",
+        description="生成动态四象限数据；默认内嵌进 templates/l4.html（或经 export_l4 写出）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument("--start_date", default="2022-01-01", help="开始日期 YYYY-MM-DD")
     p.add_argument("--end_date",   default="",           help="结束日期 YYYY-MM-DD（默认今天）")
-    p.add_argument("--output",     default="animation_data/data.json",
-                   help="旁路 JSON 路径（默认 animation_data/data.json）")
-    p.add_argument("--html",       default="animation.html",
-                   help="要内嵌数据的 HTML 路径（默认仓库根目录 animation.html）")
+    p.add_argument("--output",     default="reports/runtime_out/l4_data.json",
+                   help="旁路 JSON 路径")
+    p.add_argument("--html",       default="templates/l4.html",
+                   help="要内嵌数据的 HTML 模板路径")
     p.add_argument("--no-embed",   action="store_true",
                    help="只写 JSON，不改 HTML")
     p.add_argument("--username",   default="", help="Pandadata 用户名（优先用环境变量）")
@@ -202,8 +202,20 @@ def _fetch_ohlc_chunked(pd_mod, code: str, feed: str, start: str, end: str):
     return s_all, feed
 
 
+# 估值 lookback=252、景气 window=20：拉行情须向前预热，否则动画开头会钉在 (0, 50)
+_PRICE_WARMUP_DAYS = 400
+
+
 def _load_industry_prices(pd_mod, start: str, end: str) -> dict:
-    """返回 {industry_name: pd.Series(close, index=datetime)}"""
+    """返回 {industry_name: pd.Series(close, index=datetime)}。
+
+    实际拉取窗口为 [start - warmup, end]，供首日即可算动量/分位；
+    日快照仍只在 [start, end] 内生成。
+    """
+    start_dt = datetime.strptime(start[:10], "%Y-%m-%d")
+    fetch_start = (start_dt - timedelta(days=_PRICE_WARMUP_DAYS)).strftime("%Y-%m-%d")
+    print(f"  [INFO] 行情预热窗口：{fetch_start} → {end}（展示仍从 {start} 起）")
+
     result = {}
     for name in ANIMATION_INDUSTRIES:
         code, feed = price_feed(name)
@@ -212,15 +224,14 @@ def _load_industry_prices(pd_mod, start: str, end: str) -> dict:
             result[name] = None
             continue
         try:
-            # 基金或超长窗口：统一分段，避免「间隔不能超过1年」
             span_days = (
                 datetime.strptime(end[:10], "%Y-%m-%d")
-                - datetime.strptime(start[:10], "%Y-%m-%d")
+                - datetime.strptime(fetch_start[:10], "%Y-%m-%d")
             ).days
             if feed == "fund" or span_days > 360:
-                s, feed_used = _fetch_ohlc_chunked(pd_mod, code, feed, start, end)
+                s, feed_used = _fetch_ohlc_chunked(pd_mod, code, feed, fetch_start, end)
             else:
-                start_n = start.replace("-", "")
+                start_n = fetch_start.replace("-", "")
                 end_n = end.replace("-", "")
                 if feed == "fund":
                     df = pd_mod.get_fund_daily(symbol=code, start_date=start_n, end_date=end_n)
@@ -241,23 +252,40 @@ def _load_industry_prices(pd_mod, start: str, end: str) -> dict:
 
 
 def _compute_sentiment(price_series, window: int = 20) -> float:
-    """用近 window 日涨跌动量作为景气代理，归一化到 -1~+1"""
-    if price_series is None or len(price_series) < window + 1:
+    """用近 window 日涨跌动量作为景气代理，归一化到 -1~+1。
+
+    样本不足 window 时缩短窗口（最少 5 日），避免开头整段钉在 0。
+    """
+    if price_series is None or len(price_series) < 6:
         return 0.0
-    recent = price_series.iloc[-window:]
+    w = min(window, len(price_series) - 1)
+    if w < 5:
+        return 0.0
+    recent = price_series.iloc[-w:]
     ret = float(recent.iloc[-1] / recent.iloc[0] - 1)
-    # 简单截断归一化：±10% → ±1
     return max(-1.0, min(1.0, ret / 0.10))
 
 
 def _compute_valuation_pct(price_series, lookback: int = 252) -> float:
-    """用近 lookback 日 price/均值 分位替代 PE 分位（演示用）"""
-    if price_series is None or len(price_series) < 20:
+    """用近 lookback 日价格分位替代 PE 分位（演示用）。"""
+    if price_series is None or len(price_series) < 5:
         return 50.0
     hist = price_series.iloc[-lookback:] if len(price_series) >= lookback else price_series
     cur = float(price_series.iloc[-1])
     pct = float((hist < cur).mean() * 100)
     return round(pct, 1)
+
+
+def _is_placeholder_point(ind: dict) -> bool:
+    """预热不足时的占位点：景气 0 + 估值 50（或无收盘价）。"""
+    try:
+        s = float(ind.get("sentiment") or 0.0)
+        v = float(ind.get("valuation_pct") if ind.get("valuation_pct") is not None else 50.0)
+    except Exception:
+        return True
+    if ind.get("close") is None:
+        return True
+    return abs(s) < 1e-12 and abs(v - 50.0) < 1e-9
 
 
 # ── 构建每日快照 ─────────────────────────────────────────────────────────────
@@ -335,64 +363,100 @@ def _build_daily_snapshots(macro_monthly: dict, industry_prices: dict,
             "industries": inds,
         }
 
+    # 丢掉开头仍无有效动量的帧（预热不足或全体景气=0）
+    keys = sorted(daily.keys())
+    cut = 0
+    for ds in keys:
+        inds = list((daily[ds].get("industries") or {}).values())
+        if not inds:
+            cut += 1
+            continue
+        n_ph = sum(1 for v in inds if _is_placeholder_point(v))
+        n_flat = sum(1 for v in inds if abs(float(v.get("sentiment") or 0.0)) < 1e-12)
+        if n_ph >= max(1, int(0.8 * len(inds))) or n_flat >= len(inds):
+            cut += 1
+            continue
+        break
+    if cut > 0:
+        print(f"  [INFO] 已跳过开头 {cut} 个预热不足交易日（{keys[0]} → 从 {keys[cut]} 起播）")
+        daily = {k: daily[k] for k in keys[cut:]}
+
     return daily
 
 
 # ── 内嵌到 HTML ───────────────────────────────────────────────────────────────
 _EMBED_BEGIN = "<!-- ANIMATION_EMBEDDED_DATA_BEGIN -->"
 _EMBED_END = "<!-- ANIMATION_EMBEDDED_DATA_END -->"
+_SNAP_BEGIN = "<!-- RUNTIME_SNAPSHOT_BEGIN -->"
+_SNAP_END = "<!-- RUNTIME_SNAPSHOT_END -->"
 
 
-def _embed_into_html(html_path: pathlib.Path, payload: dict) -> None:
-    """把 JSON 写入 animation.html 的内嵌块，打开页面即可用，无需手动加载。"""
-    if not html_path.exists():
-        print(f"  [WARN] HTML 不存在，跳过内嵌：{html_path}", file=sys.stderr)
-        return
-    text = html_path.read_text(encoding="utf-8")
-    if _EMBED_BEGIN not in text or _EMBED_END not in text:
-        print(
-            f"  [WARN] {html_path} 缺少内嵌标记 "
-            f"{_EMBED_BEGIN} … {_EMBED_END}，跳过内嵌。",
-            file=sys.stderr,
-        )
-        return
-    # 转义 </script> 以免 JSON 字符串打断 HTML
-    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    raw = raw.replace("<", "\\u003c").replace(">", "\\u003e")
-    block = (
-        f"{_EMBED_BEGIN}\n"
-        f'<script type="application/json" id="animation-embedded-data">{raw}</script>\n'
-        f"{_EMBED_END}"
-    )
+def _replace_marked_block(
+    text: str,
+    begin: str,
+    end: str,
+    inner_html: str,
+) -> str:
     import re
-    pattern = re.compile(
-        re.escape(_EMBED_BEGIN) + r".*?" + re.escape(_EMBED_END),
-        re.DOTALL,
-    )
+
+    pattern = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.DOTALL)
+    block = f"{begin}\n{inner_html}\n{end}"
     new_text, n = pattern.subn(block, text, count=1)
     if n != 1:
-        print("  [WARN] 内嵌替换失败（未匹配到唯一标记块）", file=sys.stderr)
-        return
-    html_path.write_text(new_text, encoding="utf-8")
-    print(f"  [OK] 已内嵌进页面：{html_path.resolve()}（打开即用，无需加载 JSON）")
+        raise ValueError(f"内嵌标记未唯一匹配：{begin}")
+    return new_text
 
 
-# ── 主流程 ────────────────────────────────────────────────────────────────────
-def main():
-    args = _parse_args()
-    start = args.start_date
-    end   = args.end_date or datetime.now().strftime("%Y-%m-%d")
-    root = pathlib.Path(__file__).resolve().parent.parent
+def _json_for_script(payload) -> str:
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    return raw.replace("<", "\\u003c").replace(">", "\\u003e")
 
-    print("=" * 60)
-    print(f"  build_animation.py")
-    print(f"  起止日期：{start} → {end}")
-    print(f"  JSON 路径：{args.output}")
-    print(f"  内嵌 HTML：{'否' if args.no_embed else args.html}")
-    print("=" * 60)
 
-    pd_mod = _init_panda(args.username, args.password)
+def embed_animation_data(html_path: pathlib.Path, payload: dict) -> None:
+    """把历史动画 JSON 写入 HTML 内嵌块。"""
+    html_path = pathlib.Path(html_path)
+    if not html_path.exists():
+        raise FileNotFoundError(f"HTML 不存在：{html_path}")
+    text = html_path.read_text(encoding="utf-8")
+    if _EMBED_BEGIN not in text or _EMBED_END not in text:
+        raise ValueError(f"{html_path} 缺少动画内嵌标记")
+    inner = (
+        f'<script type="application/json" id="animation-embedded-data">'
+        f"{_json_for_script(payload)}</script>"
+    )
+    html_path.write_text(
+        _replace_marked_block(text, _EMBED_BEGIN, _EMBED_END, inner),
+        encoding="utf-8",
+    )
 
+
+def embed_runtime_snapshot(html_path: pathlib.Path, snapshot: dict | None) -> None:
+    """把本次分析快照写入同一 HTML（与动画同页）。"""
+    html_path = pathlib.Path(html_path)
+    if not html_path.exists():
+        raise FileNotFoundError(f"HTML 不存在：{html_path}")
+    text = html_path.read_text(encoding="utf-8")
+    if _SNAP_BEGIN not in text or _SNAP_END not in text:
+        raise ValueError(f"{html_path} 缺少 RUNTIME_SNAPSHOT 标记（请更新 templates/l4.html）")
+    payload = snapshot if snapshot is not None else None
+    inner = (
+        f'<script type="application/json" id="runtime-snapshot-data">'
+        f"{_json_for_script(payload)}</script>"
+    )
+    html_path.write_text(
+        _replace_marked_block(text, _SNAP_BEGIN, _SNAP_END, inner),
+        encoding="utf-8",
+    )
+
+
+# 兼容旧名
+def _embed_into_html(html_path: pathlib.Path, payload: dict) -> None:
+    embed_animation_data(html_path, payload)
+    print(f"  [OK] 已内嵌进页面：{pathlib.Path(html_path).resolve()}（打开即用，无需加载 JSON）")
+
+
+def build_animation_payload(pd_mod, start: str, end: str) -> dict:
+    """拉取宏观+行情，生成 animation 内嵌 payload（供 export_l4 / CLI 共用）。"""
     print("\n[步骤 1] 加载宏观数据...")
     macro_monthly = _load_macro(pd_mod, start, end)
     print(f"  月度快照：{len(macro_monthly)} 个月")
@@ -411,45 +475,54 @@ def main():
         pmi_prev = macro_monthly[month_keys[i - 1]].get("pmi") if i > 0 else row.get("pmi")
         phases_out[ms] = {
             "phase": _determine_phase(row, pmi_prev=pmi_prev),
-            "pmi":   row.get("pmi"),
-            "cpi":   row.get("cpi"),
-            "m2":    row.get("m2"),
-            "sf":    row.get("sf"),
+            "pmi": row.get("pmi"),
+            "cpi": row.get("cpi"),
+            "m2": row.get("m2"),
+            "sf": row.get("sf"),
         }
 
-    output = {
+    return {
         "meta": {
-            "start":     start,
-            "end":       end,
+            "start": start,
+            "end": end,
             "generated": datetime.now().isoformat(),
-            "source":    "build_animation.py",
-            "note":      "页面内嵌；宏观月度定相 + SH/SZ/ETF 行情代理（非申万.SI；.SI 在 panda 常无日行情）",
+            "source": "export_l4 / build_animation",
+            "note": "页面内嵌；宏观月度定相 + SH/SZ/ETF 行情代理（非申万.SI）",
             "code_verified_date": CODE_VERIFIED_DATE,
-            "price_feeds": {k: {"symbol": v[0], "feed": v[1]} for k, v in INDUSTRY_PRICE_FEEDS.items() if k in ANIMATION_INDUSTRIES},
+            "price_feeds": {
+                k: {"symbol": v[0], "feed": v[1]}
+                for k, v in INDUSTRY_PRICE_FEEDS.items()
+                if k in ANIMATION_INDUSTRIES
+            },
         },
         "industries": list(ANIMATION_INDUSTRIES),
-        "phases":     phases_out,
-        "daily":      daily,
+        "phases": phases_out,
+        "daily": daily,
     }
 
-    out_path = pathlib.Path(args.output)
-    if not out_path.is_absolute():
-        out_path = root / out_path
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
 
-    size_kb = out_path.stat().st_size / 1024
-    print(f"\n  [完成] JSON 已写入：{out_path}（{size_kb:.1f} KB）")
-    if daily:
-        print(f"  日期范围：{min(daily)} ~ {max(daily)}")
+# ── 主流程 ────────────────────────────────────────────────────────────────────
+def main():
+    """兼容入口：等价于 python scripts/export_l4.py --rebuild。"""
+    args = _parse_args()
+    root = pathlib.Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from export_l4 import export_l4
 
-    if not args.no_embed:
-        html_path = pathlib.Path(args.html)
-        if not html_path.is_absolute():
-            html_path = root / html_path
-        print("\n[步骤 4] 内嵌到 HTML...")
-        _embed_into_html(html_path, output)
+    html_path = pathlib.Path(args.html)
+    if not html_path.is_absolute():
+        html_path = root / html_path
+    export_l4(
+        output=str(html_path),
+        rebuild=True,
+        start_date=args.start_date,
+        end_date=args.end_date or "",
+        json_output=args.output,
+        username=args.username,
+        password=args.password,
+        write_json=True,
+        only_json=bool(args.no_embed),
+    )
 
 
 if __name__ == "__main__":
