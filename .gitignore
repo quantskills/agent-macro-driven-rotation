@@ -1,0 +1,43 @@
+# Gitignore for Macro-Driven Rotation Agent
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 构建/调试临时文件
+_gen.py
+_gen.ps1
+_build.ps1
+_seg*.ps1
+_test_*.txt
+references/test.md
+
+# 运行时本地记忆（可含用户偏好）
+runtime/memory/store.json
+
+# ── 可再生成产物（勿提交；目录内保留 .gitkeep 占位）──
+# 回测输出：python scripts/backtest.py --output_dir backtest_output
+backtest_output/**
+!backtest_output/.gitkeep
+
+# 图表自测：python _writer.py → test_charts/
+test_charts/**
+!test_charts/.gitkeep
+
+# 运行时报告：python -m runtime.run --output-dir reports/runtime_out
+reports/runtime_out/**
+!reports/runtime_out/.gitkeep
+
+# 一次性全量跑批快照（可用 reports/samples/ 作结构样例）
+reports/full_run_*/
+
+# 动画旁路 JSON（正式交付已内嵌进 animation.html）
+animation_data/*.json
+
+*.html.bak

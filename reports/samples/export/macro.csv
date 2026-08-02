@@ -1,0 +1,8 @@
+﻿metric,value,period,source
+宏观阶段,复苏期,2026-06,macro-monitor
+PMI,50.8,2026-06,get_macro_ci
+CPI同比,0.3%,2026-06,get_macro_pi
+M2同比,8.2%,2026-06,get_macro_mb
+社融存量同比,10.5%,2026-06,get_macro_fs
+loose_liquidity,True,2026-06,rule
+code_verified_date,2026-07-30,-,industry_codes

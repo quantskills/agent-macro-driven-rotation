@@ -1,0 +1,57 @@
+---
+description: 使用宏观驱动行业轮动 Agent 进行宏观阶段判定、行业景气确认、估值过滤和行业轮动推荐分析。
+globs:
+  - "**/*.py"
+  - "**/*.md"
+alwaysApply: false
+---
+
+# 宏观驱动行业轮动 Agent（Cursor 项目规则适配）
+
+当用户询问以下问题时，使用本 Agent 进行分析：
+- 现在该买什么行业？
+- 宏观环境处于什么阶段？
+- 行业轮动推荐
+- 改进版美林时钟分析
+- 宏观定相位 / 宏观阶段判定
+- 行业配置参考
+- CPI/GDP/PMI 宏观数据
+- 行业景气度 / 高频行业数据
+- 行业估值分位 / PE/PB
+
+## 使用步骤
+
+1. 读取 `.cursor/skills/agent-macro-driven-rotation/SKILL.md`（本 Agent 的完整规则）
+2. 同时读取三个依赖 skill：
+   - `.cursor/skills/macro-monitor/SKILL.md`
+   - `.cursor/skills/macro-altdata-nowcast/SKILL.md`
+   - `.cursor/skills/index-valuation-rotation/SKILL.md`
+3. 读取 `.cursor/skills/agent-macro-driven-rotation/references/macro-driven-rotation-guide.md` 了解分析框架
+
+## 安装路径
+
+将本 skill 文件夹置于：
+
+```text
+.cursor/skills/agent-macro-driven-rotation
+```
+
+同时将三个依赖 skill 置于：
+
+```text
+.cursor/skills/macro-monitor
+.cursor/skills/macro-altdata-nowcast
+.cursor/skills/index-valuation-rotation
+```
+
+## 核心规则摘要
+
+- **六步工作流**：意图识别 → 宏观定相（macro-monitor）→ 行业初筛 → 景气确认（macro-altdata-nowcast）→ 估值过滤（index-valuation-rotation）→ 综合输出
+- **改进版美林时钟四维**：增长（PMI/GDP）+ 通胀（CPI）+ 流动性（M2/社融）+ 政策预期差；流动性须进入判定分支或辅助字段
+- **图表**：每次分析调用 `_writer.render_all` 生成三图；失败则 ASCII 并标明降级
+- **输出分层**：L1–L3 每次必出；L4=`scripts/export_dashboard.py`，L5=`scripts/export_data.py`（用户请求时生成）
+- **数据来源**：全部来自 Pandadata API（Python 包名 `panda_data`），禁止凭记忆引用数值
+- **先定码再取数**：使用 get_macro_detail 确认指标代码后再调用数据接口（PMI=`get_macro_ci`，社融=`get_macro_fs`）
+- **边界**：分析 Agent，非 alpha 生产包
+- **免责声明**：每份报告末尾必须包含免责声明
+- **校验**：`python scripts/validate_report.py <报告.md>`
