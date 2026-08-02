@@ -2,7 +2,7 @@
 """行业码 / 行情代理 / 另类类目自动解析（替代写死码表）。
 
 原则：
-  - 阶段→行业中文名（PHASE_INDUSTRY_NAMES）是业务规则，仍来自 SKILL，API 无法「猜」美林映射
+  - 阶段→行业中文名（PHASE_INDUSTRY_NAMES）是业务规则，仍来自 AGENTS.md，API 无法「猜」美林映射
   - 申万一级码、行情代理、另类 category 尽量用 panda_data 现场匹配 + 冒烟校验
   - 结果缓存到 scripts/.cache/resolved_codes.json，避免每次全量扫表
 """

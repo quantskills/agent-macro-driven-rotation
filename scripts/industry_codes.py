@@ -2,7 +2,7 @@
 """宏观阶段→行业名（业务规则）+ 行情/申万码解析入口。
 
 重要区分：
-  - PHASE_INDUSTRY_NAMES：美林阶段受益行业（来自 SKILL，属研究框架，不能靠 API「猜」）
+  - PHASE_INDUSTRY_NAMES：美林阶段受益行业（来自 AGENTS.md / 研究框架，不能靠 API「猜」）
   - 申万码 / 行情代理 / 另类类目：优先 code_resolver 自动匹配 panda_data；
     失败时回退下方 FALLBACK_* 静态表（仅兜底）
 """
@@ -14,7 +14,7 @@ from typing import Dict, List, Optional, Tuple
 # 静态兜底定码日期（自动解析成功时以 cache.updated_at 为准）
 CODE_VERIFIED_DATE = "2026-07-30"
 
-# ── 业务规则：阶段 → 申万一级行业中文名（与 SKILL.md 对齐）────────────────
+# ── 业务规则：阶段 → 申万一级行业中文名（与 AGENTS.md / guide 对齐）──────────
 PHASE_INDUSTRY_NAMES: Dict[str, List[str]] = {
     "复苏期": ["电子", "医药生物", "计算机", "食品饮料", "社会服务"],
     "过热期": ["有色金属", "煤炭", "石油石化", "钢铁", "银行"],

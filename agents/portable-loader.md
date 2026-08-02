@@ -1,47 +1,34 @@
-# Portable Loader Prompt
+# Portable Loader（Hermes / OpenClaw / 无原生 Skill 机制）
 
-Use this prompt in agents that do not natively discover `SKILL.md` folders, including Claude Code, Hermes, OpenClaw, and any deployment that receives skills as copied folders.
+将下列说明粘贴到宿主 Prompt，并把 `<REPO_ROOT>` 替换为本仓库绝对路径。
 
-```text
-You have access to a local agent skill named agent-macro-driven-rotation at:
-<AGENT_MACRO_DRIVEN_ROTATION_ROOT>
+## 加载步骤
 
-This agent provides A-share industry rotation recommendations based on the Improved Merrill Lynch Clock
-framework. It depends on three sub-skills:
-  - macro-monitor (official macro data: GDP/CPI/PMI/social financing/M2)
-  - macro-altdata-nowcast (alternative high-frequency industry prosperity nowcasting)
-  - index-valuation-rotation (index PE/PB percentile valuation and industry momentum)
+1. 将本仓库放入工作区，并确保三个依赖目录可访问：
+   - `macro-monitor`
+   - `macro-altdata-nowcast`
+   - `index-valuation-rotation`
+2. 阅读 `<REPO_ROOT>/AGENTS.md`
+3. 方法细节可读 `<REPO_ROOT>/references/macro-driven-rotation-guide.md`
+4. `pip install -r <REPO_ROOT>/requirements.txt`
+5. 复制 `.env.example` → 环境变量（live 时填 `PANDA_DATA_*`；勿写入仓库）
+6. 运行：
 
-When the user asks for industry rotation advice, macro phase analysis, Improved Merrill Lynch Clock
-analysis, 行业轮动推荐, 宏观定相, 现在该买什么行业, or 改进版美林时钟分析:
-
-1. Read <AGENT_MACRO_DRIVEN_ROTATION_ROOT>/SKILL.md.
-2. For detailed framework, industry pool, Skill calling parameters, quadrant diagram generation,
-   report template, or memory rules, also read
-   <AGENT_MACRO_DRIVEN_ROTATION_ROOT>/references/macro-driven-rotation-guide.md.
-3. Follow the Plan-and-Execute 6-step workflow in SKILL.md:
-   Step 1 — Intent recognition
-   Step 2 — Macro phase determination (use macro-monitor skill)
-   Step 3 — Industry screening based on macro phase
-   Step 4 — Prosperity confirmation (use macro-altdata-nowcast skill)
-   Step 5 — Valuation filter (use index-valuation-rotation skill)
-   Step 6 — Integrated output (L1 conclusion → L2 evidence table → L3 quadrant diagram)
-4. For each sub-skill, read its own SKILL.md before calling any Pandadata API:
-   - Use get_macro_detail to confirm all indicator codes; never invent codes.
-   - For macro-altdata-nowcast: resolve category codes (EC/MD/EH/AD/HA/OF/RB/RE/ED/EP) first.
-   - For index-valuation-rotation: smoke-test one target before expanding the universe.
-5. Enforce output rules:
-   - Conclusion first, then reasoning chain.
-   - Tag every cited value with its data period (e.g., 2026-06 or 2026-07-W3) and source skill.
-   - Separate facts (evidence table) from interpretation (reasoning).
-   - Generate three charts via `chart_writer.render_all` (or ASCII fallback with degradation label).
-   - On user request for L4/L5: prefer `python -m runtime --live` (or `python -m runtime l4`).
-   - Never use certain investment advice language (买入/卖出/必涨/稳赚).
-6. If a sub-skill fails, degrade gracefully: output what is available and clearly label the gap.
-7. Validate / clean with unified CLI:
-   python -m runtime validate <report_file>
-   python -m runtime clean
-8. End every report with the disclaimer:
-   "本报告基于公开数据与规则化分析生成，仅供研究参考，不构成任何投资建议。"
-9. Pandadata Python package name is panda_data (pip: panda-data). This skill is an analysis agent, not an alpha-* production package.
+```bash
+cd <REPO_ROOT>
+python -m runtime --self-test
+# 或
+python -m runtime --live --query "现在该关注什么行业"
+python -m runtime validate
 ```
+
+7. 阅读 `reports/runtime_out/runtime_report.md` 与 `l4.html`
+
+## 硬约束（必须注入宿主）
+
+- 先读 `AGENTS.md`，再读依赖 Skill 的 `SKILL.md`
+- 按六步工作流：意图识别 → 宏观定相 → 行业初筛 → 景气确认 → 估值过滤 → L1–L5 综合输出
+- 依赖失败必须标注缺口，禁止编造数值
+- 禁止买入 / 卖出 / 必涨 / 仓位指令
+- 输出仅供研究参考，不构成投资建议；不承诺收益
+- 未经维护者审核，不得宣称 QuantSkills 官方背书

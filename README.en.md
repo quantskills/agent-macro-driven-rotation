@@ -56,8 +56,7 @@ Structure sample: [`reports/samples/e2e_rotation_sample.md`](reports/samples/e2e
 
 ```text
 agent-macro-driven-rotation/
-├── AGENTS.md                 Agent declaration and multi-runtime entry (required)
-├── SKILL.md                  Full behavior and usage rules
+├── AGENTS.md                 Agent declaration + behavior entry (required)
 ├── README.md / README.en.md  Repository homepage
 ├── LICENSE                   GPL-3.0-only
 ├── agents/                   Cursor / OpenAI / portable loader / publish manifest
@@ -96,11 +95,11 @@ Dependency skills: `macro-monitor`, `macro-altdata-nowcast`, `index-valuation-ro
 
 ## Runtime Compatibility
 
-[`AGENTS.md`](AGENTS.md) is the QuantSkills Agent declaration; detailed behavior is in [`SKILL.md`](SKILL.md). Loadable in **Claude Code, Codex, Cursor, Hermes, and OpenClaw**:
+[`AGENTS.md`](AGENTS.md) is the sole QuantSkills Agent declaration and behavior entry. Loadable in **Claude Code, Codex, Cursor, Hermes, and OpenClaw**:
 
 | Runtime | Entry |
 | --- | --- |
-| Claude Code / Codex | Load this folder + three dependency skills |
+| Claude Code / Codex | Load this folder's `AGENTS.md` + three dependency skills |
 | Cursor | `.cursor/skills/agent-macro-driven-rotation` + `agents/cursor-rule.mdc` |
 | Hermes / OpenClaw | `agents/portable-loader.md` |
 | OpenAI-compatible | `agents/openai.yaml` |
@@ -113,7 +112,7 @@ Publish metadata: [`agents/skill-manifest.yaml`](agents/skill-manifest.yaml).
 - Macro phase uses official CPI / GDP / PMI / social-financing series (often lagged 1–2 months).
 - Prosperity confirmation uses alternative high-frequency nowcast (timely, non-official).
 - Valuation filter uses industry-index PE/PB percentiles and momentum.
-- Phase rules and industry mapping: `SKILL.md` and `references/macro-driven-rotation-guide.md`.
+- Phase rules and industry mapping: `AGENTS.md` and `references/macro-driven-rotation-guide.md`.
 
 ## Limitations And Risk Boundaries
 
@@ -126,8 +125,7 @@ Publish metadata: [`agents/skill-manifest.yaml`](agents/skill-manifest.yaml).
 
 ## References
 
-- [`AGENTS.md`](AGENTS.md) — declaration, scenarios, limits, and metadata
-- [`SKILL.md`](SKILL.md) — behavior entry and six-step workflow
+- [`AGENTS.md`](AGENTS.md) — declaration, behavior entry, scenarios, limits, and metadata
 - [`references/macro-driven-rotation-guide.md`](references/macro-driven-rotation-guide.md) — methodology detail
 - [`references/Alpha因子开发与生产规则V2.md`](references/Alpha因子开发与生产规则V2.md) — Alpha boundary
 

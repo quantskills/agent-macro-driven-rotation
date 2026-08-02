@@ -21,16 +21,18 @@ alwaysApply: false
 
 ## 使用步骤
 
-1. 读取 `.cursor/skills/agent-macro-driven-rotation/SKILL.md`（本 Agent 的完整规则）
+1. 读取本目录 `AGENTS.md`（本 Agent 的唯一行为入口）
 2. 同时读取三个依赖 skill：
-   - `.cursor/skills/macro-monitor/SKILL.md`
-   - `.cursor/skills/macro-altdata-nowcast/SKILL.md`
-   - `.cursor/skills/index-valuation-rotation/SKILL.md`
-3. 读取 `.cursor/skills/agent-macro-driven-rotation/references/macro-driven-rotation-guide.md` 了解分析框架
+   - `macro-monitor/SKILL.md`
+   - `macro-altdata-nowcast/SKILL.md`
+   - `index-valuation-rotation/SKILL.md`
+3. 读取 `references/macro-driven-rotation-guide.md` 了解分析框架
+4. 优先 `python -m runtime --live` 或 `--self-test`
+5. 依赖失败必须标注缺口，禁止编造；禁止买卖指令
 
 ## 安装路径
 
-将本 skill 文件夹置于：
+将本 Agent 文件夹置于：
 
 ```text
 .cursor/skills/agent-macro-driven-rotation

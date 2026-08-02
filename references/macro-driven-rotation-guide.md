@@ -58,7 +58,7 @@
 | 食品饮料 | 消费信心修复，可选消费扩散至必选 |
 | 社会服务 | 出行餐饮需求弹性大，复苏弹性最高 |
 
-（与 `SKILL.md` / `scripts/industry_codes.PHASE_INDUSTRY_NAMES` 对齐；家用电器可作扩散观察，不列入初筛五行业。）
+（与 `AGENTS.md` / `scripts/industry_codes.PHASE_INDUSTRY_NAMES` 对齐；家用电器可作扩散观察，不列入初筛五行业。）
 
 ### 2.2 过热期受益行业
 

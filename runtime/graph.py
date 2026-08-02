@@ -528,7 +528,7 @@ def persist_and_report(state: AgentState) -> AgentState:
             )
     for d in deg:
         lines.append(f"| 降级 | {d} | - | runtime |")
-    lines.append(f"| 来源Skill | macro-monitor / macro-altdata-nowcast / index-valuation-rotation | - | SKILL.md |")
+    lines.append(f"| 来源Skill | macro-monitor / macro-altdata-nowcast / index-valuation-rotation | - | AGENTS.md |")
 
     out_dir = pathlib.Path(state.get("output_dir") or (ROOT / "reports" / "runtime_out"))
     out_dir.mkdir(parents=True, exist_ok=True)
