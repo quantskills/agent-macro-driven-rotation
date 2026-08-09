@@ -1,8 +1,8 @@
 ﻿metric,report_value,report_period,source,catalog_key,method,symbol,api_value,api_period,status,detail,abs_diff
 PMI,50.8,2026-06,macro-monitor / get_macro_ci,pmi,get_macro_ci,CI0000007,50.8,2026-06,PASS,tol=0.05; source=fixture,0.0000
-CPI同比,0.3,2026-06,macro-monitor / get_macro_pi,cpi,get_macro_pi,PI0000003,0.3,2026-06,PASS,tol=0.05; source=fixture,0.0000
-M2同比,8.2,2026-06,macro-monitor / get_macro_mb,m2,get_macro_mb,MB0000002,8.2,2026-06,PASS,tol=0.05; source=fixture,0.0000
-社融存量同比,10.5,2026-06,macro-monitor / get_macro_fs,sf,get_macro_fs,FS0042573,10.5,2026-06,PASS,tol=0.05; source=fixture,0.0000
+CPI同比,0.3,2026-06,macro-monitor / get_macro_pi,cpi,get_macro_pi,PI0000047,0.3,2026-06,PASS,tol=0.05; source=fixture,0.0000
+M2同比,8.2,2026-06,macro-monitor / get_macro_mb,m2,get_macro_mb,MB0000006,8.2,2026-06,PASS,tol=0.05; source=fixture,0.0000
+社融存量同比,10.5,2026-06,macro-monitor / get_macro_mb,sf,get_macro_mb,MB0000091,10.5,2026-06,PASS,tol=0.05; source=fixture,0.0000
 电子景气分数,+0.5,2026-06,macro-altdata-nowcast,,,,,,MANUAL,景气/估值类：请用子 Skill 同口径重算后人工填入，或后续扩展对账器,
 电子 PE分位,35,2026-06,index-valuation-rotation,,,,,,MANUAL,景气/估值类：请用子 Skill 同口径重算后人工填入，或后续扩展对账器,
 __phase_rules_check__,复苏期,,phase_rules,,determine_phase_from_macro,,复苏期,,PASS,"{""macro_phase"": ""复苏期"", ""loose_liquidity"": true, ""policy_gap"": null, ""phase_note"": """", ""growth_up"": true, ""high_inflation"": false}",

@@ -91,7 +91,9 @@ def macro_phase_node(state: AgentState) -> AgentState:
             import pandas as pd
 
             result = determine_phase_from_macro(50.8, 50.2, 0.3, 8.2, 10.5, policy_gap=1.2)
-            dates = pd.date_range(end=datetime.today(), periods=12, freq="MS")
+            # 与 samples/fixture（2026-06）对齐，便于 mock + --reconcile 离线对账
+            mock_asof = "2026-06-30"
+            dates = pd.date_range(end=mock_asof, periods=12, freq="MS")
             growth = pd.Series([50.2 + i * 0.05 for i in range(12)], index=dates)
             inflation = pd.Series([0.3 + (i % 3) * 0.05 for i in range(12)], index=dates)
             return {
@@ -99,7 +101,7 @@ def macro_phase_node(state: AgentState) -> AgentState:
                 "macro_phase": result["macro_phase"],
                 "loose_liquidity": result["loose_liquidity"],
                 "phase_note": result["phase_note"],
-                "macro_asof": datetime.today().strftime("%Y-%m-%d"),
+                "macro_asof": mock_asof,
                 "macro_metrics": {
                     "pmi": 50.8,
                     "cpi_yoy": 0.3,
@@ -227,10 +229,16 @@ def nowcast_node(state: AgentState) -> AgentState:
     inds = state.get("industries") or []
     if state.get("mock"):
         prosperity = [
-            {"industry": x["name"], "score": 0.5, "period": "mock", "source": "macro-altdata-nowcast"}
+            {
+                "industry": x["name"],
+                "score": 0.5,
+                "period": "mock",
+                "source": "macro-altdata-nowcast",
+                "note": "_demo",
+            }
             for x in inds[:3]
         ]
-        deg.append("景气: mock 示意分数（非实时 Nowcast；仅编排冒烟）")
+        deg.append("景气: mock 示意分数（_demo；非实时 Nowcast；仅编排冒烟）")
         return {**state, "prosperity": prosperity, "degradation": deg}
 
     try:

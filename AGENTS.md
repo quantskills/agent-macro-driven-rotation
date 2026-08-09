@@ -140,6 +140,13 @@ Publish metadata: [`agents/skill-manifest.yaml`](agents/skill-manifest.yaml).
 | 只要景气 / 估值 | 「电子、医药的另类高频景气怎么样？」 |
 | 要交互图 / 表 | 「请导出 L4 交互页和 CSV」 |
 
+### 五分钟清单
+
+- [ ] 三个 Skill 已放入宿主路径（`macro-monitor` / `macro-altdata-nowcast` / `index-valuation-rotation`）
+- [ ] 已设 `PANDA_DATA_*`（要 live 时）
+- [ ] `@agent-macro-driven-rotation` 或 `python -m runtime --live …`
+- [ ] 检查：结论、证据表、三图/`l4.html`、免责声明
+
 ## 工作流（6 步）
 
 1. 意图识别 → 宏观 / 景气 / 估值 / 完整报告

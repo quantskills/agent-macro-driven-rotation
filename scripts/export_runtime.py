@@ -33,14 +33,18 @@ def state_to_payload(state: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
 
     prosperity = []
     for p in state.get("prosperity") or []:
-        prosperity.append({
+        row = {
             "industry": p.get("industry"),
             "score": p.get("score"),
             "period": p.get("period"),
             "source": p.get("source"),
             "method": p.get("method"),
             "note": p.get("note", ""),
-        })
+        }
+        # mock / 示意分数：透传 _demo 标识，避免与 live Nowcast 混淆
+        if p.get("note") == "_demo" or p.get("flag") == "_demo":
+            row["flag"] = "_demo"
+        prosperity.append(row)
 
     valuation = []
     for v in state.get("valuation") or []:

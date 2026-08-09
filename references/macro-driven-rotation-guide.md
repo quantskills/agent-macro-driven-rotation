@@ -18,15 +18,16 @@
 本 Agent 在传统双维基础上增加两个本土化维度。
 
 **对话路径**：必须先 `get_macro_detail` 定码，不得凭记忆编造。  
-**回测写死码**（定码日期 2026-07-28，仅供脚本复现）：
+**回测写死码**（与 `scripts/macro_catalog.py` 一致，定码日期 2026-07-30，仅供脚本复现）：
 
 | 维度 | 核心指标 | 方法 | 示例代码 |
 |------|---------|------|----------|
 | **增长** | 制造业 PMI | `get_macro_ci` | `CI0000007` |
-| **通胀** | CPI 同比 | `get_macro_pi` | `PI0000003` |
-| **流动性** | M2 同比 / 社融存量同比 | `get_macro_mb` / `get_macro_fs` | `MB0000002` / `FS0042573` |
-| **政策预期差** | PMI 新订单 − 库存 | `get_macro_ci` | `CI0000010` − `CI0000017` |
+| **通胀** | CPI 同比 | `get_macro_pi` | `PI0000047` |
+| **流动性** | M2 同比 / 社融存量同比 | `get_macro_mb` | `MB0000006` / `MB0000091` |
+| **政策预期差** | PMI 新订单 − 产成品库存 | `get_macro_ci` | `CI0000009` − `CI0000012` |
 
+易混旧码（勿再用）：`PI0000003`（居住:水电燃料，非 CPI 当月同比）、`MB0000002`（M0 同比，非 M2）、`FS0042573` + `get_macro_fs`（社融已改走 MB 类 `MB0000091`）。  
 已废弃方法名（勿再使用）：`get_macro_pm`、`get_macro_fi`。
 
 ### 1.3 四阶段判定规则（与 `backtest.determine_phase_from_macro` 一致）
@@ -89,18 +90,19 @@
 
 ### 3.1 macro-monitor 调用参数映射
 
-| 分析目的 | 调用方法 | 数据频率 | 默认窗口 | 回测示例码 |
+| 分析目的 | 调用方法 | 数据频率 | 默认窗口 | 回测示例码（`macro_catalog`） |
 |---------|---------|---------|---------|-----------|
 | GDP 增速 | get_macro_na | 季度 | 近8季 | （对话定码） |
-| CPI/PPI 数据 | get_macro_pi | 月度 | 近18月 | PI0000003 |
+| CPI 同比 | get_macro_pi | 月度 | 近18月 | PI0000047 |
 | PMI 制造业 | get_macro_ci | 月度 | 近12月 | CI0000007 |
-| 社融数据 | get_macro_fs | 月度 | 近18月 | FS0042573 |
-| M2/信贷 | get_macro_mb | 月度 | 近18月 | MB0000002 |
+| 社融存量同比 | get_macro_mb | 月度 | 近18月 | MB0000091 |
+| M2 同比 | get_macro_mb | 月度 | 近18月 | MB0000006 |
 | 工业增加值 | get_macro_in | 月度 | 近12月 | （对话定码） |
-| 政策预期差（新订单/库存） | get_macro_ci | 月度 | 近12月 | CI0000010 / CI0000017 |
+| 政策预期差（新订单−产成品库存） | get_macro_ci | 月度 | 近12月 | CI0000009 / CI0000012 |
 
 调用前置步骤：先调用 get_macro_detail 确认指标代码，不得跳过。  
-已废弃：`get_macro_pm`、`get_macro_fi`（请改用 `get_macro_ci` / `get_macro_fs`）。
+脚本复现码以 `scripts/macro_catalog.py` 为准。  
+已废弃：`get_macro_pm`、`get_macro_fi`（请改用 `get_macro_ci`）；社融走 `get_macro_mb`（非 `get_macro_fs`）。
 
 ### 3.2 macro-altdata-nowcast 另类数据类别映射
 

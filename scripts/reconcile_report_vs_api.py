@@ -97,7 +97,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--fixture",
         default="",
-        help="JSON fixture：{symbol: {YYYY-MM: value, ...}, ...}；复合键可用 CI0000010-CI0000017",
+        help="JSON fixture：{symbol: {YYYY-MM: value, ...}, ...}；复合键可用 CI0000009-CI0000012",
     )
     p.add_argument("--output", default="", help="对账结果 CSV 路径")
     p.add_argument("--tol", type=float, default=None, help="覆盖默认绝对误差容差")
@@ -295,8 +295,8 @@ def get_series(
     start = f"{y - 1}-{m:02d}-01"
     end = f"{y}-{m:02d}-28"
     if meta.get("composite"):
-        s_new = meta.get("new_orders_symbol", "CI0000010")
-        s_inv = meta.get("inventory_symbol", "CI0000017")
+        s_new = meta.get("new_orders_symbol", "CI0000009")
+        s_inv = meta.get("inventory_symbol", "CI0000012")
         if fixture is not None:
             a = fixture.get(s_new, {})
             b = fixture.get(s_inv, {})

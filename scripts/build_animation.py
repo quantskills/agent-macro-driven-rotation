@@ -92,7 +92,7 @@ def _load_macro(pd_mod, start: str, end: str) -> dict:
         "ci": pd_mod.get_macro_ci,
         "pi": pd_mod.get_macro_pi,
         "mb": pd_mod.get_macro_mb,
-        "fs": pd_mod.get_macro_fs,
+        # 社融已改走 MB 类（macro_catalog.MACRO_SYMBOLS_ANIM["sf"] = mb）
     }
     for field, (cat, sym) in MACRO_SYMBOLS.items():
         try:

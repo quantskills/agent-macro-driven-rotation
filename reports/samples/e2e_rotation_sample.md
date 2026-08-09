@@ -20,10 +20,10 @@
 | 维度 | 指标 | 数值 | 数据期 | 方法 |
 |------|------|------|--------|------|
 | 增长 | 制造业 PMI | 50.8 | 2026-06 | get_macro_ci(CI0000007) |
-| 通胀 | CPI 同比 | 0.3% | 2026-06 | get_macro_pi(PI0000003) |
-| 流动性 | M2 同比 | 8.2% | 2026-06 | get_macro_mb(MB0000002) |
-| 流动性 | 社融存量同比 | 10.5% | 2026-06 | get_macro_fs(FS0042573) |
-| 政策预期差 | 新订单−库存 | +1.2 | 2026-06 | get_macro_ci(CI0000010−CI0000017) |
+| 通胀 | CPI 同比 | 0.3% | 2026-06 | get_macro_pi(PI0000047) |
+| 流动性 | M2 同比 | 8.2% | 2026-06 | get_macro_mb(MB0000006) |
+| 流动性 | 社融存量同比 | 10.5% | 2026-06 | get_macro_mb(MB0000091) |
+| 政策预期差 | 新订单−库存 | +1.2 | 2026-06 | get_macro_ci(CI0000009−CI0000012) |
 
 辅助字段：`loose_liquidity=True`，`phase_note=`（空）。
 
@@ -35,7 +35,7 @@
 - 医药生物 `801150.SI`
 - 计算机 `801750.SI`
 - 食品饮料 `801120.SI`
-- 社会服务 `801890.SI`
+- 社会服务 `801210.SI`
 
 ## 景气确认
 
@@ -94,7 +94,7 @@
 | PMI | 50.8 | 2026-06 | macro-monitor / get_macro_ci |
 | CPI同比 | 0.3% | 2026-06 | macro-monitor / get_macro_pi |
 | M2同比 | 8.2% | 2026-06 | macro-monitor / get_macro_mb |
-| 社融存量同比 | 10.5% | 2026-06 | macro-monitor / get_macro_fs |
+| 社融存量同比 | 10.5% | 2026-06 | macro-monitor / get_macro_mb |
 | 电子景气分数 | +0.5 | 2026-06 | macro-altdata-nowcast |
 | 电子 PE分位 | 35 | 2026-06 | index-valuation-rotation |
 

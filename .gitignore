@@ -16,6 +16,7 @@ __pycache__/
 
 # 临时脚本
 scripts/_tmp_*.py
+scripts/_run_*.py
 _gen.py
 _gen.ps1
 _build.ps1

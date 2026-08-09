@@ -205,9 +205,11 @@ def cmd_clean(args: argparse.Namespace) -> int:
         ROOT / "animation.html",
         ROOT / "_writer.py",
         ROOT / "reports" / "test_results_partial.json",
+        ROOT / "reports" / "test_results_full.json",
         ROOT / "reports" / "test_run_log.txt",
         ROOT / "reports" / "samples" / "rotation_dashboard.html",
         ROOT / "reports" / "samples" / "_l4_compat.html",
+        ROOT / "测试报告.md",
     ]
     for p in (ROOT / "reports").rglob("dashboard.html"):
         targets.append(p)

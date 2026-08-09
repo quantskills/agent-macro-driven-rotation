@@ -1,3 +1,3 @@
-﻿industry,code,reason,macro_phase
-电子,801080.SI,高景气+估值适中,复苏期
-医药生物,801150.SI,高景气+估值适中,复苏期
+﻿industry,code,reason,macro_phase,flag
+电子,399811.SZ,高景气+估值适中,复苏期,_demo
+医药生物,000991.SH,高景气+估值适中,复苏期,_demo

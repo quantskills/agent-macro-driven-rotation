@@ -1,6 +1,6 @@
-﻿industry,code,pe_pct,pb_pct,period,source
-电子,801080.SI,35,40,2026-06,index-valuation-rotation
-医药生物,801150.SI,40,43,2026-06,index-valuation-rotation
-计算机,801750.SI,45,46,2026-06,index-valuation-rotation
-食品饮料,801120.SI,50,49,2026-06,index-valuation-rotation
-家用电器,801110.SI,55,52,2026-06,index-valuation-rotation
+﻿industry,code,pe_pct,pb_pct,period,source,flag
+电子,399811.SZ,35,40,2026-06,index-valuation-rotation,_demo
+医药生物,000991.SH,40,43,2026-06,index-valuation-rotation,_demo
+计算机,000993.SH,45,46,2026-06,index-valuation-rotation,_demo
+食品饮料,399396.SZ,50,49,2026-06,index-valuation-rotation,_demo
+社会服务,000990.SH,55,52,2026-06,index-valuation-rotation,_demo

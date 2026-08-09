@@ -45,7 +45,7 @@ def default_payload(phase: str) -> Dict[str, Any]:
         {"metric": "PMI", "value": "50.8", "period": "2026-06", "source": "get_macro_ci"},
         {"metric": "CPI同比", "value": "0.3%", "period": "2026-06", "source": "get_macro_pi"},
         {"metric": "M2同比", "value": "8.2%", "period": "2026-06", "source": "get_macro_mb"},
-        {"metric": "社融存量同比", "value": "10.5%", "period": "2026-06", "source": "get_macro_fs"},
+        {"metric": "社融存量同比", "value": "10.5%", "period": "2026-06", "source": "get_macro_mb"},
         {"metric": "loose_liquidity", "value": "True", "period": "2026-06", "source": "rule"},
         {"metric": "code_verified_date", "value": CODE_VERIFIED_DATE, "period": "-", "source": "industry_codes"},
     ]
@@ -54,18 +54,21 @@ def default_payload(phase: str) -> Dict[str, Any]:
     recommend = []
     for i, (name, code) in enumerate(pairs):
         prosperity.append({
-            "industry": name, "code": code, "score": 0.5 - i * 0.1,
+            "industry": name, "code": code, "score": round(0.5 - i * 0.1, 1),
             "period": "2026-06", "source": "macro-altdata-nowcast",
+            "flag": "_demo",
         })
         valuation.append({
             "industry": name, "code": code, "pe_pct": 35 + i * 5,
             "pb_pct": 40 + i * 3, "period": "2026-06",
             "source": "index-valuation-rotation",
+            "flag": "_demo",
         })
         if i < 2:
             recommend.append({
                 "industry": name, "code": code, "reason": "高景气+估值适中",
                 "macro_phase": phase,
+                "flag": "_demo",
             })
     return {
         "macro": macro,
