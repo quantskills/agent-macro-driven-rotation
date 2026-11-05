@@ -22,7 +22,7 @@ metadata:
     - macro-altdata-nowcast
     - index-valuation-rotation
   summary_zh: 宏观驱动行业轮动 Agent：改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤，输出行业轮动研究参考与四象限图。
-  summary_en: Macro-driven industry rotation agent: Improved Merrill Lynch Clock phase detection, alternative-data nowcast, and valuation filter for research-only rotation materials.
+  summary_en: "Macro-driven industry rotation agent: Improved Merrill Lynch Clock phase detection, alternative-data nowcast, and valuation filter for research-only rotation materials."
 quantSkills:
   organization: QuantSkills
   organization_url: https://github.com/quantskills
@@ -44,7 +44,7 @@ quantSkills:
     - macro-altdata-nowcast
     - index-valuation-rotation
   summary_zh: 宏观驱动行业轮动 Agent：改进版美林时钟定相 + 另类景气 Nowcast + 估值过滤，输出行业轮动研究参考与四象限图。
-  summary_en: Macro-driven industry rotation agent: Improved Merrill Lynch Clock phase detection, alternative-data nowcast, and valuation filter for research-only rotation materials.
+  summary_en: "Macro-driven industry rotation agent: Improved Merrill Lynch Clock phase detection, alternative-data nowcast, and valuation filter for research-only rotation materials."
 ---
 
 # Macro-Driven Rotation Agent
@@ -216,3 +216,7 @@ Maintained by `frocir` as a QuantSkills community project.
 
 本报告与仓库材料基于公开数据与规则化分析生成，仅供研究参考，不构成任何投资建议。  
 Materials in this repository are for research reference only and do not constitute investment advice.
+
+## Pandadata compatibility
+
+[Pandadata 1.0.6 compatibility](references/pandadata-compatibility.md) — exact SDK baseline, validation scope, and shared guidance for all supported agent runtimes.
