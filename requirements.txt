@@ -8,7 +8,7 @@ pandas>=2.0,<3
 numpy>=1.22
 matplotlib>=3.7
 plotly>=5.18
-panda-data>=0.0.9
+panda-data==1.0.6
 openpyxl>=3.1
 requests>=2.34.2
 

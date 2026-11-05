@@ -144,3 +144,6 @@ GNU General Public License v3.0 only (`GPL-3.0-only`). See [LICENSE](LICENSE).
   <br>
   <sub>Scan the QR code to join the PandaAI community for QUANTSKILLS skills, agent workflows, and quantitative research practice.</sub>
 </div>
+
+
+Pandadata compatibility maintenance: [abgyjaguo](https://github.com/abgyjaguo). Existing authorship is retained.
